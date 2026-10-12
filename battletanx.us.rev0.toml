@@ -104,6 +104,16 @@ text = """
     btx_widen_cull(rdram, ctx);
 """
 
+# Widescreen HUD (src/game/hud_anchor.cpp): once the HUD function has drawn
+# the frame's HUD into its own list, anchor its left and right parts to the
+# window edges.
+[[patches.hook]]
+func = "func_800F5B6C"
+before_vram = 0x800F6664
+text = """
+    btx_hud_anchor(rdram, ctx);
+"""
+
 # Matrix IDs for RT64's frame interpolation (src/game/interpolation_ids.cpp):
 # a gEXMatrixGroup ahead of every gSPMatrix the game's matrix functions write.
 # Float matrix -> Mtx emitters, at the gSPMatrix (the cached-Mtx ones, where

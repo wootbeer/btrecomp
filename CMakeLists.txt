@@ -78,9 +78,10 @@ if (RECOMP_FLATPAK)
     add_compile_definitions(RECOMP_FLATPAK)
 endif()
 
-# Local RT64 fixes (lib-patches/rt64/), applied to the submodule at configure time.
+# Local RT64 and plume fixes (lib-patches/), applied to the submodules at configure time.
 include(${CMAKE_SOURCE_DIR}/cmake/ApplyLibPatches.cmake)
 btx_apply_lib_patches(rt64)
+btx_apply_lib_patches(plume lib/rt64/src/contrib/plume)
 
 add_subdirectory(${CMAKE_SOURCE_DIR}/lib/rt64 ${CMAKE_BINARY_DIR}/rt64)
 

@@ -203,7 +203,7 @@ extern "C" void btx_interp_frame_base(uint8_t* rdram, recomp_context* ctx) {
     }
     const gpr frame = ctx->r30;
     const gpr h = kseg0((uint32_t)MEM_W(0x24, frame));
-    MEM_W(0x00, h) = (int32_t)0xE0525464u; // gEXEnable
+    MEM_W(0x00, h) = (int32_t)0x00525464u; // gEXEnable (F3DEX 1.x: G_SPNOOP is 0x00)
     MEM_W(0x04, h) = (int32_t)0x10000064u;
     MEM_W(0x08, h) = (int32_t)0x6400000Cu; // gEXMatrixGroup, no push: replaces the base entry
     MEM_W(0x0C, h) = (int32_t)kIdAuto;

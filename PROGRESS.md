@@ -13,8 +13,9 @@ and leave the game's own behaviour, look and balance alone.
   story and the first mission, tested in the development sandbox (Linux,
   software Vulkan). Not yet played through.
 - **Widescreen** (Expand): the 3D view fills the window and the world isn't
-  culled at the old 4:3 edges. The HUD stays in the centred 4:3 area for
-  now.
+  culled at the old 4:3 edges; the gameplay HUD's left and right parts sit
+  at the window edges (1-2 players).
+- **Higher framerates**: matrix IDs for RT64's interpolation (being tested).
 - **Linux / Steam Deck package** (`tools/package-linux.sh`), alongside the
   Windows one.
 - **Recompilation**: all game code is in one section with no overlays. The
@@ -33,8 +34,8 @@ and leave the game's own behaviour, look and balance alone.
 
 - Play through menus and missions; fix what turns up.
 - Port the rest of the sequel's game-specific fixes to their counterparts
-  here: frame timing (the frame timer is `func_8007AD2C`), HUD anchoring and
-  cutscene letterboxing in widescreen, the cutscene projection.
+  here: frame timing (the frame timer is `func_8007AD2C`), cutscene
+  letterboxing in widescreen, the cutscene projection.
 - Windows and Linux (Steam Deck) releases; the Linux package is built and
   runs here (software Vulkan), not yet tried on a Deck.
 

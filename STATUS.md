@@ -7,6 +7,44 @@ engine). PROGRESS.md has the short version.
 
 # Log
 
+## 2026-10-12, round 4: widescreen HUD; extended GBI really enabled; Vulkan clipping
+
+**Widescreen HUD** (`src/game/hud_anchor.cpp`). This game has no HUD script
+interpreter like the sequel's; fixed code draws it. `func_800F5B6C` picks one
+function by player count (stored at `0x8037A140`): `func_800F6934` for one
+player, `func_800F8120`/`func_800F9F34`/`func_800FC674` for 2-4. Found by
+tracing the 2D primitives' call sites in a temporary build (texture rect
+loader `func_800F3D40`, fill rect `func_800F4DFC`). They draw into the HUD's
+own list: three rotating 0x8000-byte buffers at `0x80362120` (index
+`0x801416F4`), head `0x8037A174`. A hook where the HUD function returns
+(`0x800F6664`, before the end-of-list command) rewrites the frame's HUD
+once: rectangles are grouped with their neighbours on the same row
+(strings, numbers and their icons move together), groups entirely left of
+x 140 are anchored left, right of 180 right, others stay centred, and
+anchored groups move 16 px further out (the TV-safe margin), with the
+scissor widened while anchored. The buffer holds only plain RDP commands
+(dumped and checked), so rewriting it in place is safe. Only with 1-2
+players, in Expand. Checked in the sandbox: tank icon and lives top left,
+ammo top right, radar bottom left at the window edges, health bar centred.
+
+**gEXEnable was wrong for this game's microcode.** RT64's hook is
+`G_SPNOOP`, opcode 0x00 in F3DEX 1.21 (this game) and 0xE0 in F3DEX2 (the
+sequel). Round 3 copied the sequel's `0xE0525464`, so RT64 never enabled
+its extended GBI and ran each extended command's second word as an ordinary
+command: round 3's matrix groups did nothing (luckily their parameter words
+decode as harmless commands), and the first HUD anchoring crashed RT64 (a
+left offset word `0xFFC00000` ran as `G_SETCIMG` to `0x00C00000`, width 1).
+Both now use `0x00525464`, so round 3's interpolation IDs are active from
+this round on.
+
+**Vulkan clipping** (from the sequel's Android branch,
+`lib-patches/plume/`): Vulkan requires scissors and clear rects inside the
+render target, where Direct3D 12 just clips them. The window-wide scissor
+for anchored HUD elements starts left of the target, so on Vulkan (the
+sandbox here, Linux, the Steam Deck) everything drawn with it was dropped.
+The patches clip them the D3D12 way. `cmake/ApplyLibPatches.cmake` now
+takes a folder for nested submodules (plume is inside RT64).
+
 ## 2026-10-12, round 3: interpolation IDs (jitter and flashing at Display rate)
 
 **Report.** Plays fine (Windows build). With Refresh Rate at Display there's
@@ -45,7 +83,8 @@ sequel (`lib-patches/rt64/0002`): an ID with more transforms than last
 frame pairs the extra ones with its last transform from last frame.
 
 Runs in the sandbox through the menus into mission 1; the jitter itself
-needs checking on real hardware.
+needs checking on real hardware. (Correction, round 4: the gEXEnable used
+here is F3DEX2's, so these groups only took effect from round 4.)
 
 ## 2026-10-12, round 2: in game; widescreen; Linux and Steam Deck packaging
 
