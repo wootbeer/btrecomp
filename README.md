@@ -12,6 +12,19 @@ the sequel, and is built the same way as
 Unofficial, and not affiliated with the rights holders. **No game data is
 included.** You need your own dump of the game to build or play this.
 
+## Download and play
+
+Builds are on the [Releases](https://github.com/wootbeer/btrecomp/releases)
+page once published:
+
+- **Windows:** unzip it anywhere and run `BattleTanxRecompiled.exe`.
+- **Linux / Steam Deck:** extract the `.tar.gz` and run `BattleTanxRecompiled`.
+  On the Deck, run it from Desktop Mode, or add it to Steam as a non-Steam
+  game to play in Game Mode.
+
+On first launch, choose **Load ROM** and pick your copy of the game. It's
+checked against the hash below and never modified.
+
 ## Game Files
 You need your own dump of BattleTanx (USA), revision 1.0.
 SHA-1 of the `.z64`:

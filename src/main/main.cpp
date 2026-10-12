@@ -18,6 +18,8 @@
 #include <vector>
 #include <filesystem>
 #include <exception>
+#include <string>
+#include <system_error>
 
 #include "nfd.h"
 
@@ -383,25 +385,54 @@ std::vector<recomp::GameEntry> supported_games = {
 // been showing up empty even when something threw and printed nothing --
 // this handler force-flushes and prints the exception's own message first
 // so it actually survives redirection.
+// The message also goes to crash_log.txt (src/main/crash_handler.cpp), since
+// release builds have no console.
+void btx_report_fatal_error(const char* message);
+
 [[noreturn]] static void report_unhandled_exception_and_abort() {
+    std::string message = "std::terminate() called with no active exception";
     if (std::exception_ptr eptr = std::current_exception()) {
         try {
             std::rethrow_exception(eptr);
         } catch (const std::exception& e) {
-            fprintf(stderr, "UNHANDLED EXCEPTION: %s\n", e.what());
+            message = std::string("uncaught C++ exception: ") + e.what();
         } catch (...) {
-            fprintf(stderr, "UNHANDLED EXCEPTION: (unrecognized exception type)\n");
+            message = "uncaught C++ exception of an unrecognized type";
         }
-    } else {
-        fprintf(stderr, "std::terminate() called with no active exception.\n");
     }
     fflush(stdout);
-    fflush(stderr);
+    btx_report_fatal_error(message.c_str());
     std::abort();
+}
+
+// The UI loads assets/ relative to the working directory. Launched from a
+// file manager, a desktop shortcut or Steam (a non-Steam game on the Steam
+// Deck, say), that can be any folder, so if assets/ isn't there, use the
+// executable's own folder. Running from the repo root while developing
+// still works, since assets/ is found there first.
+static void find_assets_folder() {
+    std::error_code ec;
+    if (std::filesystem::is_directory("assets", ec)) {
+        return;
+    }
+    std::filesystem::path exe_dir;
+#if defined(_WIN32)
+    wchar_t buf[MAX_PATH];
+    DWORD len = GetModuleFileNameW(nullptr, buf, MAX_PATH);
+    if (len > 0 && len < MAX_PATH) {
+        exe_dir = std::filesystem::path(std::wstring(buf, len)).parent_path();
+    }
+#elif defined(__linux__)
+    exe_dir = std::filesystem::read_symlink("/proc/self/exe", ec).parent_path();
+#endif
+    if (!exe_dir.empty() && std::filesystem::is_directory(exe_dir / "assets", ec)) {
+        std::filesystem::current_path(exe_dir, ec);
+    }
 }
 
 int main(int argc, char** argv) {
     std::set_terminate(report_unhandled_exception_and_abort);
+    find_assets_folder();
 
     recomp::Version project_version{};
     if (!recomp::Version::from_string(version_string, project_version)) {

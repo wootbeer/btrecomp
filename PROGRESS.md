@@ -29,7 +29,8 @@ and leave the game's own behaviour, look and balance alone.
 - Port the sequel's game-specific fixes to their counterparts here: frame
   timing (the frame timer is `func_8007AD2C`), widescreen culling and HUD
   anchoring, the screen-edge scissor, the cutscene projection.
-- A Windows build and release.
+- Windows and Linux (Steam Deck) releases; the Linux package is built and
+  runs here (software Vulkan), not yet tried on a Deck.
 
 ## Where things are
 

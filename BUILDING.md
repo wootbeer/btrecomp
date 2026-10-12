@@ -50,7 +50,7 @@ sudo apt-get install cmake ninja-build libsdl2-dev libgtk-3-dev libvulkan-dev ll
 paru -S cmake ninja llvm clang lld sdl2-compat freetype2 gtk3 vulkan-headers
 ```
 
-Linux builds and runs in development, but no Linux release is packaged yet.
+Linux is built and packaged like Windows; see step 6 for the Steam Deck. macOS is not set up.
 macOS is not set up.
 
 ## 3. Put the ROM in place
@@ -121,7 +121,9 @@ Run it from the repo root: the game loads `assets/` relative to the working
 directory. Use `-DCMAKE_BUILD_TYPE=Debug` for a build a debugger can step
 through.
 
-## 6. Package a Windows release
+## 6. Package a release
+
+### Windows
 
 ```powershell
 Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass
@@ -133,6 +135,33 @@ itself), builds Release in `build-release\` so your normal `build\` is left
 alone, and writes `dist\BattleTanxRecompiled-<version>-windows.zip` with
 the exe, its DLLs, `assets\`, README and license. Steps 1-4 must be done
 first.
+
+### Linux and Steam Deck
+
+```bash
+tools/package-linux.sh 0.1.0
+```
+
+Builds Release in `build-release-linux/` (or `$BUILD_DIR`) and writes
+`dist/BattleTanxRecompiled-<version>-linux-x86_64.tar.gz`: the binary, a
+`BattleTanxRecompiled.sh` launcher, a `.desktop` entry and icon, the assets,
+README, license and third-party license notices. SDL2, GTK 3, FreeType and
+Vulkan come from the system (all present on SteamOS). Built on Ubuntu 24.04
+the binary needs glibc 2.38 or newer. Settings and saves go to
+`~/.config/btrecomp` (or the game folder with `portable.txt`).
+
+The game finds `assets/` next to its executable when the working directory
+doesn't have it, so it runs however it's launched: from a terminal, a file
+manager, the desktop entry, or Steam.
+
+On a Steam Deck: extract the archive in Desktop Mode and run
+`BattleTanxRecompiled` (or the `.sh`). To play in Game Mode, add
+`BattleTanxRecompiled` to Steam with "Add a Non-Steam Game", then launch it
+from the library; Steam Input presents the Deck's controls as a standard
+controller, which the Controls tab can remap.
+
+A CMake preset is included as well: `cmake --preset linux-release` then
+`cmake --build --preset linux-release`.
 
 ## Troubleshooting (Windows)
 
