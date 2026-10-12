@@ -1,0 +1,19 @@
+# BattleTanx's RSP audio microcode (libultra's standard aspMain), recompiled
+# by N64Recomp's RSPRecomp into rsp/aspMain.cpp.
+#
+# From the game's audio task setup in func_8007A5A4 (0x8007A674..): type 2
+# (M_AUDTASK), boot 0x8010E160 (rspboot), ucode text 0x8010F660, ucode data
+# 0x80145AA0 (0x800 bytes). The text runs to the next function, osAiGetLength
+# at 0x80110480. ROM offset = vram - 0x80070000.
+text_offset = 0x9F660
+text_size = 0xE20
+text_address = 0x04001080
+rom_file_path = "BattleTanx (USA).z64"
+output_file_path = "rsp/aspMain.cpp"
+output_function_name = "aspMain"
+extra_indirect_branch_targets = [
+    # The command dispatch table: halfwords 8-23 of the ucode data
+    # (0x80145AB0), one IMEM address per audio command.
+    0x1118, 0x1470, 0x11DC, 0x1B38, 0x1214, 0x187C, 0x1254, 0x12D0,
+    0x12EC, 0x1328, 0x140C, 0x1294, 0x1E24, 0x138C, 0x170C, 0x144C,
+]
