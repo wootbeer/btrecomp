@@ -128,7 +128,7 @@ static ultramodern::gfx_callbacks_t::gfx_data_t create_gfx() {
 
 // The window/taskbar icon, from icons/app.png (embedded as icon_bytes, decoded
 // with the stb_image that RT64 already links in). The .exe's own icon comes
-// from icons/app.rc on Windows.
+// from icons/app.res (icons/app.ico) on Windows.
 static void set_window_icon(SDL_Window* window) {
 #if defined(BTX_HAS_APP_ICON)
     int width, height, channels;
