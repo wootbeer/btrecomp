@@ -7,6 +7,46 @@ engine). PROGRESS.md has the short version.
 
 # Log
 
+## 2026-10-12, round 3: interpolation IDs (jitter and flashing at Display rate)
+
+**Report.** Plays fine (Windows build). With Refresh Rate at Display there's
+jitter and flashing textures everywhere; fine at Original.
+
+**Cause** (as in the sequel's Android port, btgarecomp
+`src/game/interpolation_ids.cpp`): with no IDs, RT64 matches each model with
+one from the last frame by comparing positions, and gets it wrong often
+enough to show; and its default AUTO position component stops
+interpolating whenever an object's speed jumps, flipping between smoothed
+and snapped frames.
+
+**This game's matrices.** No draw queue here (the sequel added one).
+Models load matrices through a block of small functions (`0x8007E41C`
+to `0x8007EBDC`): float matrix to a pooled Mtx (some cache it at float
+matrix + 0x40 for the frame), the per-view camera matrix (the pool's first
+Mtx), or a ready Mtx, each writing gSPMatrix straight into one of three
+display lists. The graphics state is `*0x801257D0`: list heads at
+`+0xD8` (main), `+0xDC`, `+0xE0`, Mtx pool pointer at `+0xE8`, frame index at
+`+0xD0`, and per-frame slots at `+0x90 + 0x18 * index` with the list buffers
+(0x8000, 0x6000 of which the game uses 0x5C00, 0x400) and the pool
+(0xC000). `func_8007D850` resets them each frame; `func_8007D998` builds the
+master list: the frame clear (`func_8007DC5C`), then the three lists.
+
+**Fix** (`src/game/interpolation_ids.cpp`): a hook in each emitter writes a
+gEXMatrixGroup ahead of its gSPMatrix: the float matrix's address as the
+ID (automatic if that float matrix made more than one Mtx this frame or
+last, i.e. shared scratch), a ready Mtx's own address (automatic if from
+the pool), and automatic for the camera matrix. Components are
+gEXMatrixGroupDecomposedNormal's (always interpolate), also set as the
+frame's base group at the end of the frame clear. Groups replace the top
+entry instead of pushing. Each group is 16 bytes in a list the game sized
+for itself, so tagging stops well short of a list's end (ending with an
+automatic group); the game's own draws keep their room. RT64 patch from the
+sequel (`lib-patches/rt64/0002`): an ID with more transforms than last
+frame pairs the extra ones with its last transform from last frame.
+
+Runs in the sandbox through the menus into mission 1; the jitter itself
+needs checking on real hardware.
+
 ## 2026-10-12, round 2: in game; widescreen; Linux and Steam Deck packaging
 
 **Tested in the development sandbox** (Linux, Xvfb, Mesa's llvmpipe

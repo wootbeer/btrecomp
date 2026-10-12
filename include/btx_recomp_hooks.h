@@ -19,6 +19,12 @@ void btx_yield_via_priority_drop(uint8_t* rdram);
 // src/game/widescreen.cpp
 void btx_widen_cull(uint8_t* rdram, recomp_context* ctx);
 
+// src/game/interpolation_ids.cpp
+void btx_interp_float_matrix(uint8_t* rdram, uint32_t head_field, uint32_t source, uint32_t mtx);
+void btx_interp_ready_matrix(uint8_t* rdram, uint32_t head_field, uint32_t mtx);
+void btx_interp_auto(uint8_t* rdram, uint32_t head_field);
+void btx_interp_frame_base(uint8_t* rdram, recomp_context* ctx);
+
 #ifdef __cplusplus
 }
 #endif

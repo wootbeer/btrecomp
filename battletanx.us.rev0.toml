@@ -104,6 +104,97 @@ text = """
     btx_widen_cull(rdram, ctx);
 """
 
+# Matrix IDs for RT64's frame interpolation (src/game/interpolation_ids.cpp):
+# a gEXMatrixGroup ahead of every gSPMatrix the game's matrix functions write.
+# Float matrix -> Mtx emitters, at the gSPMatrix (the cached-Mtx ones, where
+# both paths meet): float matrix, then the Mtx.
+[[patches.hook]]
+func = "func_8007E41C"
+before_vram = 0x8007E46C
+text = """
+    btx_interp_float_matrix(rdram, 0xD8, (uint32_t)ctx->r8, (uint32_t)MEM_W(0xE8, ctx->r16));
+"""
+
+[[patches.hook]]
+func = "func_8007E4F4"
+before_vram = 0x8007E544
+text = """
+    btx_interp_float_matrix(rdram, 0xDC, (uint32_t)ctx->r8, (uint32_t)MEM_W(0xE8, ctx->r16));
+"""
+
+[[patches.hook]]
+func = "func_8007E5CC"
+before_vram = 0x8007E648
+text = """
+    btx_interp_float_matrix(rdram, 0xD8, (uint32_t)ctx->r17, (uint32_t)ctx->r6);
+"""
+
+[[patches.hook]]
+func = "func_8007E694"
+before_vram = 0x8007E710
+text = """
+    btx_interp_float_matrix(rdram, 0xDC, (uint32_t)ctx->r17, (uint32_t)ctx->r6);
+"""
+
+[[patches.hook]]
+func = "func_8007E75C"
+before_vram = 0x8007E7D8
+text = """
+    btx_interp_float_matrix(rdram, 0xD8, (uint32_t)ctx->r17, (uint32_t)ctx->r6);
+"""
+
+[[patches.hook]]
+func = "func_8007E824"
+before_vram = 0x8007E8A0
+text = """
+    btx_interp_float_matrix(rdram, 0xDC, (uint32_t)ctx->r17, (uint32_t)ctx->r6);
+"""
+
+# The view matrix (the first Mtx of the frame's pool): automatic matching.
+[[patches.hook]]
+func = "func_8007EAA4"
+before_vram = 0x8007EAA4
+text = """
+    btx_interp_auto(rdram, 0xD8);
+"""
+
+[[patches.hook]]
+func = "func_8007EB04"
+before_vram = 0x8007EB04
+text = """
+    btx_interp_auto(rdram, 0xDC);
+"""
+
+# Ready Mtx passed in $a0.
+[[patches.hook]]
+func = "func_8007EB64"
+before_vram = 0x8007EB64
+text = """
+    btx_interp_ready_matrix(rdram, 0xD8, (uint32_t)ctx->r4);
+"""
+
+[[patches.hook]]
+func = "func_8007EBA0"
+before_vram = 0x8007EBA0
+text = """
+    btx_interp_ready_matrix(rdram, 0xD8, (uint32_t)ctx->r4);
+"""
+
+[[patches.hook]]
+func = "func_8007EBDC"
+before_vram = 0x8007EBDC
+text = """
+    btx_interp_ready_matrix(rdram, 0xD8, (uint32_t)ctx->r4);
+"""
+
+# End of the frame clear, the start of the frame: base group and a new generation.
+[[patches.hook]]
+func = "func_8007DC5C"
+before_vram = 0x8007E114
+text = """
+    btx_interp_frame_base(rdram, ctx);
+"""
+
 # --- BEGIN GENERATED DIVISION GUARDS (tools/gen_div_guards.py) ---
 
 [[patches.instruction]]
