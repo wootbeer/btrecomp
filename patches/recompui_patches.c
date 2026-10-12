@@ -6,9 +6,14 @@
 // a call into the rest of the recompiled game.
 extern void* func_8007F204(s32 flag);
 
+// src/game/screen_edge_scissor_fix.cpp: widens the game's off-by-one
+// screen-edge scissors in its viewport display lists.
+extern void btx_fix_screen_edge_scissors(void);
+
 // func_80079530 is the game's VI swap routine: the VI dispatch thread runs it
 // once per VI, and it is the only caller of osViSwapBuffer. That makes it the
-// place to pump recompui's per-frame UI callbacks (recomp_run_ui_callbacks).
+// place to pump recompui's per-frame UI callbacks (recomp_run_ui_callbacks)
+// and to apply the screen-edge scissor fix.
 // A RECOMP_PATCH replaces the whole function, so the pump runs at a real call
 // boundary; the rest is the original, line for line from the disassembly.
 // It's the same routine as the sequel's func_800A1858, with the same fields
@@ -17,6 +22,7 @@ extern void* func_8007F204(s32 flag);
 //   0x1F0 (u16): pending-swap counter; cleared once a swap happens.
 //   0x1F2 (u16): one-shot "unblank display" flag.
 RECOMP_PATCH void func_80079530(void* state) {
+    btx_fix_screen_edge_scissors();
     recomp_run_ui_callbacks();
 
     u16* swap_pending = (u16*) ((u8*) state + 0x1F0);

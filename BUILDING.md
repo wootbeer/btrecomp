@@ -51,7 +51,6 @@ paru -S cmake ninja llvm clang lld sdl2-compat freetype2 gtk3 vulkan-headers
 ```
 
 Linux is built and packaged like Windows; see step 6 for the Steam Deck. macOS is not set up.
-macOS is not set up.
 
 ## 3. Put the ROM in place
 

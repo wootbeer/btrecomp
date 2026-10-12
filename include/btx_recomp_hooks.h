@@ -16,6 +16,9 @@ extern "C" {
 // a loop that waits on one of them.
 void btx_yield_via_priority_drop(uint8_t* rdram);
 
+// src/game/widescreen.cpp
+void btx_widen_cull(uint8_t* rdram, recomp_context* ctx);
+
 #ifdef __cplusplus
 }
 #endif

@@ -7,6 +7,50 @@ engine). PROGRESS.md has the short version.
 
 # Log
 
+## 2026-10-12, round 2: in game; widescreen; Linux and Steam Deck packaging
+
+**Tested in the development sandbox** (Linux, Xvfb, Mesa's llvmpipe
+software Vulkan, driven with xdotool): the launcher with **Load ROM**,
+then boot, 3DO logo, title screen, the attract intro, Controller Pak note
+creation, Game Setup, the campaign story intro, and mission 1 ("Ground
+Zero") with the HUD, firing and explosions. No hangs, no crashes. Round 1
+had one fix to make first: the entry point's symbol included the `break`
+after its call, so when the boot function returned the runtime stopped on
+it. `tools/find_functions.py` now ends a path at a `break` (a trap that
+never runs: IDO's divide-by-zero checks and this one).
+
+**Screen-edge scissor** (`src/game/screen_edge_scissor_fix.cpp`;
+btgarecomp rounds 94 and 97). The same off-by-one as the sequel: the
+viewport display lists scissor to 319 x 239, leaving the last column and
+row undrawn, and RT64's Expand won't widen a view whose scissor doesn't
+span the screen. The lists are a 0x320-byte block at ROM `0xD7040` (just
+after the code), copied by `func_8007D4E8` to `0x803C8880`, with its address
+at `0x801257C0`; the six edge scissors are at the sequel's offsets. Fixed in
+the copy once per VI from the `func_80079530` patch.
+
+**Widescreen culling** (`src/game/widescreen.cpp`; btgarecomp round 98).
+With the scissor fixed, RT64 widens the 3D view in Expand, but the game
+culled against its 4:3 cone. Here the cull factor is one global
+(`0x8012585C`, set per player count by `func_80081AD0` from the same
+2.2 / 1.12 / 1.12 / 2.29 table the sequel uses, at `0x80071490`) rather than
+a camera field. `func_8008228C` builds each player's cull record and passes
+k on the stack; a hook where both of its paths meet (`0x800823D0`) divides
+k by the Expand factor for full-width views (1 player, both 2-player
+halves, the 3-player top view). Confirmed in the sandbox: the world reaches
+the window edges. The HUD is still in the centred 4:3 area.
+
+**Linux and Steam Deck** (as in DinoTale and btgarecomp round 134):
+`tools/package-linux.sh` builds a `.tar.gz` with the binary, a launcher
+script, a `.desktop` entry and icon, assets and license notices;
+`CMakePresets.json` has Linux presets. The game now finds `assets/` next to
+its executable when the working directory doesn't have it, which is the
+case when Steam launches it as a non-Steam game. Tested here by unpacking
+the package and starting it from `/`. The binary needs glibc 2.38+, SDL2,
+GTK 3, FreeType and Vulkan from the system. Not yet run on a Deck.
+
+**Crash logs** from btgarecomp round 134: exception code and module, C++
+exception type and message, and `crash_log.txt` for uncaught exceptions.
+
 ## 2026-10-11, round 1: project set up; symbols, config, audio, first build
 
 **Starting point.** The repository was empty. Two references:

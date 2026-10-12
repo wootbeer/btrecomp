@@ -92,6 +92,18 @@ text = """
     if (MEM_W(S32(0x802E << 16), 0x17D0) != 0) { btx_yield_via_priority_drop(rdram); }
 """
 
+# --- Rendering ----------------------------------------------------------------
+
+# Widescreen (src/game/widescreen.cpp): widen the per-player cull cone by
+# RT64's Expand factor, so the world isn't culled at the old 4:3 edges. Both
+# paths that store the cull factor at sp+0x14 meet here.
+[[patches.hook]]
+func = "func_8008228C"
+before_vram = 0x800823D0
+text = """
+    btx_widen_cull(rdram, ctx);
+"""
+
 # --- BEGIN GENERATED DIVISION GUARDS (tools/gen_div_guards.py) ---
 
 [[patches.instruction]]

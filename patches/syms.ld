@@ -51,3 +51,4 @@ recomp_get_level_select = 0x8F0000DC;
 recomp_get_cheat_enabled = 0x8F0000E0;
 osViBlack_recomp = 0x8F0000E4;
 osViSwapBuffer_recomp = 0x8F0000E8;
+btx_fix_screen_edge_scissors = 0x8F0000F4;
