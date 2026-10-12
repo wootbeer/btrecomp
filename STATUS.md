@@ -7,6 +7,24 @@ engine). PROGRESS.md has the short version.
 
 # Log
 
+## 2026-10-12, round 5: shared matrices off the IDs (cannon particles)
+
+**Report.** Round 4 confirmed on Windows: the flashing is gone at Display
+rate, and the widescreen HUD looks right. New: the particles from the
+tank's cannon fly all over the place.
+
+**Cause.** Measured in the sandbox while firing: of the ~210 ready Mtx
+loaded per frame, 31-35 are loaded more than once in the frame (one by 15
+draws), each under a different parent transform: effect and particle
+matrices shared by many draws. Each had one ID, and RT64 pairs an ID's
+repeats in order, so whenever the number or order of particles changed,
+each was interpolated toward a different particle from the last frame.
+
+**Fix** (`src/game/interpolation_ids.cpp`): a ready Mtx loaded more than
+once in this frame or the last is treated as shared and left to RT64's
+automatic matching, as shared float matrices already were. Only Mtx used
+once a frame keep their address as ID.
+
 ## 2026-10-12, round 4: widescreen HUD; extended GBI really enabled; Vulkan clipping
 
 **Widescreen HUD** (`src/game/hud_anchor.cpp`). This game has no HUD script

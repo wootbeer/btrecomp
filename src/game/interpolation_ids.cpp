@@ -24,7 +24,7 @@
 //     RT64's automatic matching (the sequel learned this the hard way: one ID
 //     for several objects made RT64 blend between them).
 //   - ready-Mtx emitters: the Mtx's own address, unless it's in the per-frame
-//     pool.
+//     pool or loaded more than once a frame (shared, like a particle's).
 //   - the per-view camera matrix: automatic, so nothing after it inherits an
 //     object's ID.
 // Groups never push: each replaces the top of RT64's group stack, which RT64
@@ -117,6 +117,7 @@ namespace {
     // this one.
     struct Generation {
         std::unordered_map<uint32_t, uint32_t> source_mtx;
+        std::unordered_map<uint32_t, uint32_t> ready_uses; // ready Mtx -> loads this frame
     };
     Generation generations[2];
     int current = 0;
@@ -172,6 +173,24 @@ namespace {
     }
 }
 
+// A ready Mtx loaded more than once in a frame (this one or the last) is
+// shared by several draws, each under a different parent transform: a
+// particle's or effect's local matrix, for instance. Its address says
+// nothing about which draw is which, and giving all of them one ID made RT64
+// pair particles with the wrong ones whenever their number or order changed
+// (the cannon's particles flew all over the screen), so those stay on
+// automatic matching. Only a Mtx used once per frame keeps its address as ID.
+namespace {
+    uint32_t id_for_ready_matrix(uint32_t mtx) {
+        Generation& now = generations[current];
+        const Generation& last = generations[current ^ 1];
+        const uint32_t uses = ++now.ready_uses[mtx];
+        auto prev = last.ready_uses.find(mtx);
+        const bool shared_last = (prev != last.ready_uses.end()) && (prev->second > 1);
+        return (uses > 1 || shared_last) ? kIdAuto : mtx;
+    }
+}
+
 // Float matrix emitters, just before the gSPMatrix: the float matrix and the
 // Mtx made from it.
 extern "C" void btx_interp_float_matrix(uint8_t* rdram, uint32_t head_field, uint32_t source, uint32_t mtx) {
@@ -182,7 +201,7 @@ extern "C" void btx_interp_float_matrix(uint8_t* rdram, uint32_t head_field, uin
 // the per-frame pool.
 extern "C" void btx_interp_ready_matrix(uint8_t* rdram, uint32_t head_field, uint32_t mtx) {
     const bool pooled = in_pool(rdram, gfx_state(rdram), mtx);
-    write_group(rdram, list_index(head_field), pooled ? kIdAuto : mtx);
+    write_group(rdram, list_index(head_field), pooled ? kIdAuto : id_for_ready_matrix(mtx));
 }
 
 // The per-view camera matrix: automatic matching from here on.
@@ -198,6 +217,7 @@ extern "C" void btx_interp_auto(uint8_t* rdram, uint32_t head_field) {
 extern "C" void btx_interp_frame_base(uint8_t* rdram, recomp_context* ctx) {
     current ^= 1;
     generations[current].source_mtx.clear();
+    generations[current].ready_uses.clear();
     for (bool& stopped : list_stopped) {
         stopped = false;
     }
