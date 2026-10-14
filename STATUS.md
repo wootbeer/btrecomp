@@ -7,6 +7,46 @@ engine). PROGRESS.md has the short version.
 
 # Log
 
+## 2026-10-14, round 6: scenery flying across the screen while driving (Display rate)
+
+**Report.** Round 5 confirmed: the cannon looks right. New: lots of
+flickering and jitter when driving forward and back, only at Display rate.
+
+**Measured** in the sandbox with a temporary log in RT64's frame matching
+(`GameFrame::match`), with a manual 120 Hz refresh rate (under Xvfb RT64
+sees no display rate, so Display never interpolates there):
+- In gameplay the camera is part of the projection (one combined
+  view x perspective Mtx, reloaded a few times a frame), and nearly every
+  object is a ready Mtx loaded with `G_MTX_LOAD`: the level's scenery has
+  one world-space Mtx per object (`0x801Dxxxx-0x801Fxxxx` here), drawn
+  once per part of its model, so many are loaded several times a frame.
+- Round 5 put every such Mtx on RT64's automatic matching, which pairs
+  by model and nearest transform with no distance limit. Driving forward
+  or back brings objects into the draw range and takes others out, and
+  RT64 paired an object coming in with another of the same model going
+  out: 210-1150 units apart, sometimes rotated 90 degrees. For the
+  interpolated frames the object flew across the screen.
+- Nothing in the ready path is short-lived but culled scenery, and no
+  ready Mtx loaded more than once changes from frame to frame.
+
+**Fix:**
+- `src/game/interpolation_ids.cpp`: a ready Mtx loaded more than once
+  keeps its address as ID when its contents are the same as last frame
+  (hash of its 64 bytes): static scenery, all of whose loads are the same
+  matrix. One that changes stays on automatic matching as in round 5, so
+  whatever moved the cannon's particles is handled as before.
+- `lib-patches/rt64/0003-auto-match-max-distance.patch`: automatic
+  matching rejects a pair more than 256 units apart (shells, the fastest
+  thing measured, move about 110 a frame). Left unpaired, an object is
+  drawn where it is. This covers pooled Mtx too (destructible objects,
+  tanks), which can't have IDs.
+
+**Result** in the sandbox, driving forward and back, then firing: no
+object with an ID moves more than 40 units or turns in a frame, and the
+only large automatic moves are shells in flight and a few small
+camera-space effects. Before: several scenery pairs per frame while
+driving. Needs a check on real hardware at Display rate.
+
 ## 2026-10-12, round 5: shared matrices off the IDs (cannon particles)
 
 **Report.** Round 4 confirmed on Windows: the flashing is gone at Display
