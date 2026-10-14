@@ -46,6 +46,7 @@
 #include "recompinput/input_events.h"
 #include "recompinput/profiles.h"
 #include "recompinput/players.h"
+#include "recompinput/input_mapping.h"
 
 #include "librecomp/game.hpp"
 #include "librecomp/helpers.hpp"
@@ -467,6 +468,14 @@ int main(int argc, char** argv) {
     }
 
     recompinput::players::set_single_player_mode(true);
+
+    // Controller defaults: Z (fire) on the right trigger and R on the left,
+    // the reverse of the frontend's. Only the defaults: mappings already in a
+    // saved profile are kept, and the controls menu can change them.
+    recompinput::set_default_mapping_for_controller(recompinput::GameInput::Z,
+        { recompinput::InputField::controller_analog(SDL_CONTROLLER_AXIS_TRIGGERRIGHT, true) });
+    recompinput::set_default_mapping_for_controller(recompinput::GameInput::R,
+        { recompinput::InputField::controller_analog(SDL_CONTROLLER_AXIS_TRIGGERLEFT, true) });
 
     // recompui::config::init_modal() (called from UIState::create_menus(),
     // itself called from inside RT64::Application::setup() on the gfx
