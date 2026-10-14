@@ -7,6 +7,34 @@ engine). PROGRESS.md has the short version.
 
 # Log
 
+## 2026-10-14, round 7: interpolation switching off and on (own tank jitter)
+
+**Report.** Round 6 helped, but the player's tank still jitters at
+Display rate when driving (user video, 60 fps).
+
+**Video.** The scenery moves every display frame (the camera is
+interpolated), while the tank jumps about 9 px (at 1080p) and back every
+two or three display frames.
+
+**Measured** in the sandbox (temporary logs in RT64):
+- The tank's matrices are paired correctly every frame, all at one
+  orientation, with steps of 11, 16 or 22 units: frames of two, three or
+  four VIs (about 5.5 units per VI).
+- On real frames the tank is at exactly the same screen position (the
+  camera is locked to it), so the game's own frames are steady.
+- RT64 takes the game's frame rate from the last three VI counts between
+  presents (`VIHistory::logicalRateFromFactors`), and returns 0, unknown,
+  unless all three are equal. With this game's mixed 2/3/4-VI frames it
+  was 0 for over half the frames: interpolation switched off for those,
+  back on for the next, and its frame timing reset each time.
+
+**Fix** (`lib-patches/rt64/0004-vi-rate-from-latest-factor.patch`): the
+rate comes from the latest VI count alone (60/2 = 30, 60/3 = 20, ...).
+That is how long the previous frame was shown, the time covered by the
+frame being interpolated, so each game frame gets display frames in
+proportion to its length. In the sandbox the rate is now never 0 after
+startup.
+
 ## 2026-10-14, round 6: scenery flying across the screen while driving (Display rate)
 
 **Report.** Round 5 confirmed: the cannon looks right. New: lots of
