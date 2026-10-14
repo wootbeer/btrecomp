@@ -7,6 +7,40 @@ engine). PROGRESS.md has the short version.
 
 # Log
 
+## 2026-10-14, round 8: effect sprites tracked in world space (flicker)
+
+**Report.** Round 7 is much smoother. Some particle effects still flicker
+(user video: the player's tank exploding, fire and smoke under the death
+camera).
+
+**Video.** Fire sprites show in some display frames of a game frame and
+not in others (a 4-frame cycle at 15 fps): in the interpolated frames a
+sprite slides in from another sprite's place.
+
+**Cause** (sandbox, temporary logs). Fire and smoke are camera-facing
+sprites drawn by `func_80080C60` (call at `0x80080E48`). Their matrices
+are in camera space and go into the per-frame pool, so they were on
+RT64's automatic matching, all with the same model. When the camera moves
+(the death camera orbits), their camera-space positions jump and RT64
+paired them with each other. The function draws them from a list it
+rebuilds every frame (nodes at `0x801C0xxx` hold a different sprite each
+frame), so no address identifies a sprite; but each node holds the
+sprite's world position (floats at +0x4/+0x8/+0xC), which doesn't depend
+on the camera.
+
+**Fix:**
+- `src/game/interpolation_ids.cpp` (hook at `0x80080E48`): each sprite
+  is paired with the nearest unclaimed sprite from the last frame in
+  world space, within 64 units, and keeps its ID (`0x1xxxxxxx`, below
+  the addresses used as IDs); new sprites get new IDs. The next ready Mtx
+  load uses that ID instead of automatic matching.
+- `lib-patches/rt64/0005-id-match-max-distance.patch`: ID pairing also
+  stops at 256 units, like automatic matching since round 6.
+
+**Result** (sandbox, firing): of 3208 sprite draws, every one with a
+partner last frame was paired with itself (177 new sprites unpaired, as
+they should be).
+
 ## 2026-10-14, round 7: interpolation switching off and on (own tank jitter)
 
 **Report.** Round 6 helped, but the player's tank still jitters at

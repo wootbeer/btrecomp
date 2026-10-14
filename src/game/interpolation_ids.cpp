@@ -23,7 +23,8 @@
 //     objects, which says nothing about any one of them, so it stays on
 //     RT64's automatic matching (the sequel learned this the hard way: one ID
 //     for several objects made RT64 blend between them).
-//   - ready-Mtx emitters: the Mtx's own address, unless it's in the per-frame
+//   - ready-Mtx emitters: the Mtx's own address (an effect sprite's node for
+//     the pooled ones func_80080C60 makes), unless it's in the per-frame
 //     pool or loaded more than once a frame (shared, like a particle's) and
 //     changed since the last.
 //   - the per-view camera matrix: automatic, so nothing after it inherits an
@@ -37,7 +38,9 @@
 // tagging stops well before a list is full (with one automatic group, so
 // nothing inherits an object's ID); the game's own draws are never squeezed.
 #include <cstdint>
+#include <cstring>
 #include <unordered_map>
+#include <vector>
 
 #include "recomp.h"
 
@@ -222,11 +225,89 @@ extern "C" void btx_interp_float_matrix(uint8_t* rdram, uint32_t head_field, uin
     write_group(rdram, list_index(head_field), id_for_float_matrix(source, mtx));
 }
 
+// Effect sprites (fire, smoke, from func_80080C60) are camera-facing, their
+// matrices built in the per-frame pool, all with the same model: on automatic
+// matching RT64 paired them with each other whenever the camera moved them
+// around (the death camera's orbit), and they flickered in and out between
+// game frames. The function draws them from a list it rebuilds every frame,
+// so nothing in the game keeps a sprite at one address, but each list node
+// has the sprite's world position (floats at +0x4/+0x8/+0xC): a sprite is
+// paired with the nearest one from last frame there, unaffected by the
+// camera, and keeps its ID. New sprites get new IDs.
+namespace {
+    struct Sprite {
+        float x, y, z;
+        uint32_t id;
+        bool claimed;
+    };
+    std::vector<Sprite> sprites_now, sprites_last;
+    uint32_t next_sprite_id = 0;
+    uint32_t next_ready_id = 0;
+
+    // A sprite moving further than this in a frame is a new one. Smoke and
+    // fire drift a few units a frame.
+    constexpr float kSpriteMaxStep = 64.0f;
+
+    float read_float(uint8_t* rdram, uint32_t address) {
+        const int32_t word = MEM_W(0, kseg0(address));
+        float value;
+        std::memcpy(&value, &word, sizeof(value));
+        return value;
+    }
+
+    void next_sprite_generation() {
+        sprites_last.swap(sprites_now);
+        sprites_now.clear();
+        for (Sprite& sprite : sprites_last) {
+            sprite.claimed = false;
+        }
+    }
+}
+
+// func_80080C60, just before its gSPMatrix: the sprite's list node in $s1.
+extern "C" void btx_interp_effect_sprite(uint8_t* rdram, uint32_t node) {
+    const float x = read_float(rdram, node + 0x4);
+    const float y = read_float(rdram, node + 0x8);
+    const float z = read_float(rdram, node + 0xC);
+    Sprite* best = nullptr;
+    float best_distance = kSpriteMaxStep * kSpriteMaxStep;
+    for (Sprite& sprite : sprites_last) {
+        if (sprite.claimed) {
+            continue;
+        }
+        const float dx = sprite.x - x, dy = sprite.y - y, dz = sprite.z - z;
+        const float distance = dx * dx + dy * dy + dz * dz;
+        if (distance <= best_distance) {
+            best = &sprite;
+            best_distance = distance;
+        }
+    }
+    uint32_t id;
+    if (best != nullptr) {
+        best->claimed = true;
+        id = best->id;
+    }
+    else {
+        // IDs of their own, below the addresses used as IDs elsewhere.
+        id = 0x10000000u | (next_sprite_id++ & 0x0FFFFFFFu);
+    }
+    sprites_now.push_back({ x, y, z, id, false });
+    next_ready_id = id;
+}
+
 // Ready-Mtx emitters: the Mtx's address is the object's, unless it's from
 // the per-frame pool.
 extern "C" void btx_interp_ready_matrix(uint8_t* rdram, uint32_t head_field, uint32_t mtx) {
-    const bool pooled = in_pool(rdram, gfx_state(rdram), mtx);
-    write_group(rdram, list_index(head_field), pooled ? kIdAuto : id_for_ready_matrix(rdram, mtx));
+    uint32_t id;
+    if (next_ready_id != 0) {
+        id = next_ready_id;
+        next_ready_id = 0;
+    }
+    else {
+        const bool pooled = in_pool(rdram, gfx_state(rdram), mtx);
+        id = pooled ? kIdAuto : id_for_ready_matrix(rdram, mtx);
+    }
+    write_group(rdram, list_index(head_field), id);
 }
 
 // The per-view camera matrix: automatic matching from here on.
@@ -244,6 +325,7 @@ extern "C" void btx_interp_frame_base(uint8_t* rdram, recomp_context* ctx) {
     generations[current].source_mtx.clear();
     generations[current].ready_uses.clear();
     generations[current].ready_contents.clear();
+    next_sprite_generation();
     for (bool& stopped : list_stopped) {
         stopped = false;
     }

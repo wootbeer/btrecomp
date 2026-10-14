@@ -197,6 +197,16 @@ text = """
     btx_interp_ready_matrix(rdram, 0xD8, (uint32_t)ctx->r4);
 """
 
+# Effect sprites (fire, smoke): func_80080C60 builds each one's matrix in the
+# frame's pool from a node in a per-frame list ($s1), whose world position
+# identifies the sprite.
+[[patches.hook]]
+func = "func_80080C60"
+before_vram = 0x80080E48
+text = """
+    btx_interp_effect_sprite(rdram, (uint32_t)ctx->r17);
+"""
+
 # End of the frame clear, the start of the frame: base group and a new generation.
 [[patches.hook]]
 func = "func_8007DC5C"
