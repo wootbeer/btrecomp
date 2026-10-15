@@ -7,6 +7,31 @@ engine). PROGRESS.md has the short version.
 
 # Log
 
+## 2026-10-15, round 14: the camera interpolated as a camera (jitter turning)
+
+**Report** (first build with rounds 8-13 really in it): still jitter
+driving forward at the Display framerate, and extreme jitter when turning
+hard.
+
+**Cause.** RT64 interpolates the view matrix it splits from the game's
+camera x perspective matrix component by component (the projection's
+rigid body has decomposition off). The objects are interpolated
+separately in world space. For a chase camera swinging round its tank the
+two don't agree: the tank, steady in front of the camera on every real
+frame, slid sideways in the in-between frames. Driving straight cancels
+out to first order; turning doesn't.
+
+**Fix** (`lib-patches/rt64/0007-camera-view-interpolation.patch`,
+`ProjectionProcessor::processScene`): when the view is interpolated, its
+orientation is slerped and the camera's position (minus the translation
+times the inverse 3x3, not the matrix's translation) is lerped, then the
+view is rebuilt from both. Falls back to the old blend for invalid or
+mirrored decompositions. Checked with a standalone test (chase camera 100
+units behind, tank turning 15 degrees and moving in a frame): the tank's
+view-space position at mid-frame was off by 2.1 units sideways (about 1
+degree, ~25 px at 1080p), now 0.0 (0.8 units in depth from moving along
+the chord). Sandbox renders turning and driving normally.
+
 ## 2026-10-15, round 13: the build regenerates RecompiledFuncs/ itself
 
 **Found while porting:** nothing reran N64Recomp after a change to
