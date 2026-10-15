@@ -340,11 +340,14 @@ extern "C" void btx_interp_auto(uint8_t* rdram, uint32_t head_field) {
     write_group(rdram, list_index(head_field), kIdAuto);
 }
 
+// src/game/cutscene_letterbox.cpp
+uint32_t btx_cutscene_letterbox(uint8_t* rdram, uint32_t clear_start, uint32_t head);
+
 // End of the frame clear (func_8007DC5C, head at 0x24($fp)), the first thing
 // in the frame's master display list: enable RT64's extended GBI, set the
 // base group to automatic matching with the components above (for
 // everything drawn without one of the emitters: terrain and effects), and
-// start a new generation.
+// start a new generation. Then the cutscene letterbox, if any.
 extern "C" void btx_interp_frame_base(uint8_t* rdram, recomp_context* ctx) {
     current ^= 1;
     generations[current].source_mtx.clear();
@@ -363,5 +366,20 @@ extern "C" void btx_interp_frame_base(uint8_t* rdram, recomp_context* ctx) {
     MEM_W(0x0C, h) = (int32_t)kIdAuto;
     MEM_W(0x10, h) = (int32_t)matrix_group_params(kIdAuto, false);
     MEM_W(0x14, h) = 0;
-    MEM_W(0x24, frame) = (int32_t)((uint32_t)h + 0x18);
+    uint32_t head = (uint32_t)h + 0x18;
+
+    // The clear starts by setting segment 0 (G_MOVEWORD 0xBC000006).
+    uint32_t clear_start = (uint32_t)h;
+    for (int i = 0; i < 64; i++) {
+        if ((uint32_t)MEM_W(0, kseg0(clear_start - 8)) == 0xBC000006u) {
+            clear_start -= 8;
+            break;
+        }
+        clear_start -= 8;
+    }
+    if ((uint32_t)MEM_W(0, kseg0(clear_start)) != 0xBC000006u) {
+        clear_start = (uint32_t)h;
+    }
+    head = btx_cutscene_letterbox(rdram, clear_start, head);
+    MEM_W(0x24, frame) = (int32_t)head;
 }

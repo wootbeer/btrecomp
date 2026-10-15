@@ -7,6 +7,31 @@ engine). PROGRESS.md has the short version.
 
 # Log
 
+## 2026-10-15, round 15: letterboxed 3D cutscenes black at the sides
+
+**Report** (user screenshot, Expand): beside the 4:3 frame of a 3D
+cutscene ("Civilization came to an end on May 6, 2001"), the scene's
+clear colour shows instead of black; the 2D story slides are fine. The
+sequel's rounds 101/105 problem.
+
+**Cause.** A 3D cutscene draws through its camera's cutscene viewport:
+entry `0x1E0` of the static viewport block (segment 1), a viewport centred
+at (160,77) with the scissor at (34,19)-(286,134). The rest of the 4:3
+frame stays black, but the frame clear (`func_8007DC5C`) fills the colour
+buffer across the whole screen, and RT64 stretches a full-width fill to
+the window in Expand.
+
+**Fix** (`src/game/cutscene_letterbox.cpp`, called from the frame-clear
+hook): when a camera's viewport list (+0xF4; cameras 0x348 bytes from
+`0x802DE620`, count at `0x801B4AB4`, as `func_800A5EB0` reads them) is the
+cutscene one, append a black fill of the whole screen (stretched to the
+window like the clear), then the clear colour again over just the box
+(34,19)-(285,133), which RT64 keeps in the 4:3 frame. The clear colour is
+read from the clear's own fill colour command; if the clear didn't fill
+the colour buffer this frame, only the black is drawn. Checked by forcing
+the gameplay camera onto the cutscene viewport in a temporary build:
+black beside and around the box, the scene and its sky inside.
+
 ## 2026-10-15, round 14: the camera interpolated as a camera (jitter turning)
 
 **Report** (first build with rounds 8-13 really in it): still jitter
