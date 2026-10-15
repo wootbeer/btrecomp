@@ -7,6 +7,32 @@ engine). PROGRESS.md has the short version.
 
 # Log
 
+## 2026-10-15, round 13: the build regenerates RecompiledFuncs/ itself
+
+**Found while porting:** nothing reran N64Recomp after a change to
+`battletanx.us.rev0.toml`, and the rebuild steps given to the user since
+round 8 didn't either. So the hooks added in rounds 8 and 11 (effect
+sprite tracking at `0x80080E48`, the frame step at `0x8007B0AC`) and round
+12's stub never reached the user's build: the round 8 explosion fix was
+never tested. Now `CMakeLists.txt` has a custom command that runs
+N64RecompCLI when the config or the symbol file changes (stamp file in the
+build directory), with the generated sources as byproducts so the same
+build recompiles them; `RecompiledFuncs` depends on it. Checked: a touched
+config regenerates and recompiles; an unchanged build does nothing. Only
+once `RecompiledFuncs/` exists and the ROM is present (a fresh clone still
+generates by hand first).
+
+**The sequel's fixes, audited.** Ported or already present: busy-wait
+yields, screen-edge scissors, widescreen culling, HUD anchoring, the
+frame-step snapping (round 11), the draw distance pin (round 12), the
+audio latency cap (in `main.cpp` since the start), the crash handler.
+Checked and not needed: the cutscene camera's far plane (round 12 note);
+`(int)step` stalls (the sequel's rounds 127/131: all ten truncations here
+multiply the step by a whole factor first); functions merged into another
+symbol and called through a pointer (the sequel's round 129 scan, adapted:
+92 candidates, none referenced as a pointer). Left: the cutscene sides in
+Expand (waiting on a screenshot).
+
 ## 2026-10-15, round 12: draw distance pinned at the level's maximum
 
 The sequel's round 110 again. The draw distance at `0x80125858` (also the

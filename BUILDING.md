@@ -72,8 +72,9 @@ The game itself also asks for the ROM on first launch (it accepts `.z64`,
 ## 4. Generate the recompiled code
 
 Build N64Recomp and run it on the config. This writes `RecompiledFuncs/`
-(gitignored; regenerate it after any change to the `.toml` or the symbol
-file).
+(gitignored). Only the first time: once `RecompiledFuncs/` exists, every
+build reruns N64Recomp by itself when `battletanx.us.rev0.toml` or the
+symbol file changes (after a `git pull`, for instance).
 
 **Windows** (in a Developer PowerShell for VS 2022, see "Windows shell"
 below):

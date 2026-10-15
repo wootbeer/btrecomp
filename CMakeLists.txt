@@ -141,6 +141,29 @@ endif()
 
 target_sources(RecompiledFuncs PRIVATE ${FUNC_C_SOURCES} ${FUNC_CXX_SOURCES})
 
+# Regenerate RecompiledFuncs/ whenever the recompiler config or the symbols
+# change: the config's [[patches.hook]]s are part of the generated code, and
+# a build that only recompiled the existing files kept stale hooks. The
+# generated files are declared as byproducts so the same build recompiles
+# them. Only once they exist (a fresh clone generates them by hand first, see
+# BUILDING.md) and only with the ROM present.
+if (EXISTS "${CMAKE_SOURCE_DIR}/BattleTanx (USA).z64" AND (FUNC_C_SOURCES OR FUNC_CXX_SOURCES)
+        AND NOT FUNC_C_SOURCES MATCHES "recompiled_funcs_placeholder")
+    add_custom_command(OUTPUT ${CMAKE_BINARY_DIR}/recompiled_funcs.stamp
+        COMMAND $<TARGET_FILE:N64RecompCLI> battletanx.us.rev0.toml
+        COMMAND ${CMAKE_COMMAND} -E touch ${CMAKE_BINARY_DIR}/recompiled_funcs.stamp
+        WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+        DEPENDS ${CMAKE_SOURCE_DIR}/battletanx.us.rev0.toml
+                ${CMAKE_SOURCE_DIR}/BattleTanxSyms/battletanx.us.rev0.syms.toml
+                N64RecompCLI
+        BYPRODUCTS ${FUNC_C_SOURCES} ${FUNC_CXX_SOURCES}
+        COMMENT "Regenerating RecompiledFuncs/ from battletanx.us.rev0.toml"
+        VERBATIM
+    )
+    add_custom_target(RecompiledFuncsGen DEPENDS ${CMAKE_BINARY_DIR}/recompiled_funcs.stamp)
+    add_dependencies(RecompiledFuncs RecompiledFuncsGen)
+endif()
+
 # PatchesLib - recompiled patches (RT64 overlay hook via osViSwapBuffer -> recomp_run_ui_callbacks)
 add_library(PatchesLib STATIC)
 target_compile_options(PatchesLib PRIVATE -fno-strict-aliasing -Wno-unused-variable -Wno-implicit-function-declaration -falign-functions=16)
