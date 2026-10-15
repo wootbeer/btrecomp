@@ -7,6 +7,18 @@ engine). PROGRESS.md has the short version.
 
 # Log
 
+## 2026-10-15: beta release preparation
+
+- README rewritten in the sequel's port's style; CHANGELOG.md added (0.1.0,
+  first public beta) and shipped in both release packages.
+- Removed: the BTX_NO_AUDIO_CAP testing switch, a dead placeholder branch
+  in CMakeLists.txt (named after the sequel), stale comments, and notes
+  about other projects. `.gitignore` tidied (same coverage).
+- Checked: no personal information in tracked files or commits; every
+  source file compiles clean with -Wall -Wextra; every third-party license
+  the packages collect is present; a fresh configure works; the game runs
+  through the menus into a mission.
+
 ## 2026-10-15: rounds 14-15 confirmed
 
 On Windows at 144 Hz, Display framerate: turning hard is good, straight
@@ -354,8 +366,7 @@ left offset word `0xFFC00000` ran as `G_SETCIMG` to `0x00C00000`, width 1).
 Both now use `0x00525464`, so round 3's interpolation IDs are active from
 this round on.
 
-**Vulkan clipping** (from the sequel's Android branch,
-`lib-patches/plume/`): Vulkan requires scissors and clear rects inside the
+**Vulkan clipping** (`lib-patches/plume/`): Vulkan requires scissors and clear rects inside the
 render target, where Direct3D 12 just clips them. The window-wide scissor
 for anchored HUD elements starts left of the target, so on Vulkan (the
 sandbox here, Linux, the Steam Deck) everything drawn with it was dropped.
@@ -367,8 +378,7 @@ takes a folder for nested submodules (plume is inside RT64).
 **Report.** Plays fine (Windows build). With Refresh Rate at Display there's
 jitter and flashing textures everywhere; fine at Original.
 
-**Cause** (as in the sequel's Android port, btgarecomp
-`src/game/interpolation_ids.cpp`): with no IDs, RT64 matches each model with
+**Cause:** with no IDs, RT64 matches each model with
 one from the last frame by comparing positions, and gets it wrong often
 enough to show; and its default AUTO position component stops
 interpolating whenever an object's speed jumps, flipping between smoothed
@@ -435,7 +445,7 @@ k by the Expand factor for full-width views (1 player, both 2-player
 halves, the 3-player top view). Confirmed in the sandbox: the world reaches
 the window edges. The HUD is still in the centred 4:3 area.
 
-**Linux and Steam Deck** (as in DinoTale and btgarecomp round 134):
+**Linux and Steam Deck** (as in btgarecomp round 134):
 `tools/package-linux.sh` builds a `.tar.gz` with the binary, a launcher
 script, a `.desktop` entry and icon, assets and license notices;
 `CMakePresets.json` has Linux presets. The game now finds `assets/` next to

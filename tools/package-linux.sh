@@ -44,7 +44,7 @@ cd "$(dirname "$(readlink -f "$0")")" && exec ./BattleTanxRecompiled "$@"
 EOF
 chmod 755 "$stage/BattleTanxRecompiled.sh"
 cp -r assets "$stage/"
-cp README.md COPYING "$stage/"
+cp README.md CHANGELOG.md COPYING "$stage/"
 cp icons/app.png "$stage/BattleTanxRecompiled.png"
 # Desktop entry: edit Exec/Icon to the folder you extracted to, then copy it
 # to ~/.local/share/applications to get a menu entry.

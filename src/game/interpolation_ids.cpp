@@ -1,6 +1,5 @@
 // Matrix IDs for RT64's frame interpolation (Refresh Rate above the game's
-// own frame rate), as in the sequel's Android port (btgarecomp,
-// src/game/interpolation_ids.cpp there).
+// own frame rate).
 //
 // Without IDs RT64 pairs each model with one in the previous frame by
 // comparing position, orientation and screen position, and picks wrongly

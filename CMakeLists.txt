@@ -251,24 +251,17 @@ if (EXISTS ${CMAKE_SOURCE_DIR}/RecompiledFuncs/recomp_overlays.inl)
     target_compile_definitions(BattleTanxRecompiled PRIVATE BTX_HAS_RECOMPILED_FUNCS)
 endif()
 
-if (NOT SOURCES)
-    message(STATUS "src/ and rsp/ are empty - building BattleTanxRecompiled as a placeholder only.")
-    file(WRITE ${CMAKE_BINARY_DIR}/battletanxga_placeholder.cpp
-        "int main() { return 0; } // No game source found -- see BUILDING.md.\n")
-    set(SOURCES ${CMAKE_BINARY_DIR}/battletanxga_placeholder.cpp)
-else()
-    # The compat shims (src/game/stock_runtime_compat.cpp, controller_pak.cpp) provide things a
-    # game-specific runtime fork would otherwise already have, and building both gives duplicate
-    # symbol errors. Detect a fork by the SP_STATUS helpers it would add to librecomp/rsp.hpp and
-    # leave the shims out.
-    file(READ ${CMAKE_SOURCE_DIR}/lib/N64ModernRuntime/librecomp/include/librecomp/rsp.hpp BTX_RSP_HPP)
-    if(BTX_RSP_HPP MATCHES "get_sp_status")
-        message(STATUS "Forked N64ModernRuntime detected -- stock compat shims disabled")
-        target_compile_definitions(BattleTanxRecompiled PRIVATE BTX_FORKED_RUNTIME)
-        list(REMOVE_ITEM SOURCES
-            ${CMAKE_SOURCE_DIR}/src/game/stock_runtime_compat.cpp
-            ${CMAKE_SOURCE_DIR}/src/game/controller_pak.cpp)
-    endif()
+# The compat shims (src/game/stock_runtime_compat.cpp, controller_pak.cpp) provide things a
+# game-specific runtime fork would otherwise already have, and building both gives duplicate
+# symbol errors. Detect a fork by the SP_STATUS helpers it would add to librecomp/rsp.hpp and
+# leave the shims out.
+file(READ ${CMAKE_SOURCE_DIR}/lib/N64ModernRuntime/librecomp/include/librecomp/rsp.hpp BTX_RSP_HPP)
+if(BTX_RSP_HPP MATCHES "get_sp_status")
+    message(STATUS "Forked N64ModernRuntime detected -- stock compat shims disabled")
+    target_compile_definitions(BattleTanxRecompiled PRIVATE BTX_FORKED_RUNTIME)
+    list(REMOVE_ITEM SOURCES
+        ${CMAKE_SOURCE_DIR}/src/game/stock_runtime_compat.cpp
+        ${CMAKE_SOURCE_DIR}/src/game/controller_pak.cpp)
 endif()
 
 target_include_directories(BattleTanxRecompiled PRIVATE

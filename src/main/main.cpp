@@ -173,7 +173,7 @@ static ultramodern::renderer::WindowHandle create_window(ultramodern::gfx_callba
         exit_error("Failed to get window info: %s", SDL_GetError());
     }
     return ultramodern::renderer::WindowHandle{ wm_info.info.win.window, GetCurrentThreadId() };
-#elif defined(__linux__) || defined(__ANDROID__)
+#elif defined(__linux__)
     return ultramodern::renderer::WindowHandle{ window };
 #else
     static_assert(false && "Only Linux and Windows are set up in this file so far.");
@@ -270,12 +270,6 @@ static void queue_samples(int16_t* audio_data, size_t sample_count) {
     }
 
     std::lock_guard<std::mutex> lock(audio_mutex);
-    // Testing switch: BTX_NO_AUDIO_CAP=1 queues everything, as before btgarecomp round 124.
-    static const bool no_audio_cap = [] { const char* v = std::getenv("BTX_NO_AUDIO_CAP"); return v != nullptr && v[0] != '\0' && v[0] != '0'; }();
-    if (no_audio_cap) {
-        SDL_QueueAudio(audio_device, buffer.data(), static_cast<Uint32>(sample_count * sizeof(float)));
-        return;
-    }
     const size_t bytes_per_ms = game_frequency * audio_channels * sizeof(float) / 1000;
     const size_t queued_bytes = SDL_GetQueuedAudioSize(audio_device);
     if (queued_bytes > audio_hard_cap_ms * bytes_per_ms) {
@@ -380,12 +374,10 @@ std::vector<recomp::GameEntry> supported_games = {
 };
 
 // std::terminate (any uncaught C++ exception, on any thread -- recomp::start
-// spawns several) leads straight into ucrtbase's fail-fast abort path, which
-// tears the process down without running atexit handlers or flushing stdio
-// buffers. That's why redirected runs (`... > run_output.txt 2>&1`) have
-// been showing up empty even when something threw and printed nothing --
-// this handler force-flushes and prints the exception's own message first
-// so it actually survives redirection.
+// spawns several) leads straight into the C runtime's fail-fast abort path,
+// which tears the process down without running atexit handlers or flushing
+// stdio buffers, so the exception's message would be lost. This handler
+// flushes and reports it first.
 // The message also goes to crash_log.txt (src/main/crash_handler.cpp), since
 // release builds have no console.
 void btx_report_fatal_error(const char* message);

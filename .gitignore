@@ -1,87 +1,55 @@
-# VSCode file settings
+# Editor settings
 .vscode/settings.json
 .vscode/c_cpp_properties.json
 .vscode/launch.json
+.vs/
+.DS_Store
 
-# Input elf and rom files
-*.elf
+# The game: never committed, in any dump format or archive
 *.z64
 *.n64
 *.v64
+*.7z
 
-# Output C files
+# Everything generated from the ROM
 RecompiledFuncs/
 RecompiledPatches/
-# RSP microcode recompiled from the ROM (n_aspMain.us.rev0.toml)
 rsp/
-
-# patches/ build output (patches.elf is covered by the *.elf rule below)
+*.elf
 patches/*.o
 patches/*.d
 patches/*.bin
 patches/*.map
+# Disassembly tools' output and exports, which would contain the game's code
+*.gpr
+*.rep/
+ghidra_exports/
+/asm/
+/.splache/
+assets/unk_*.bin
 
-# Linux build output
+# Recompiler binaries built from the submodule (or a symlink to one)
+/N64Recomp
+/RSPRecomp
+
+# Build output
 build/
-build-cmake/
+build-*/
+dist/
+out/
 *.o
-
-# Windows build output
 *.exe
 *.dll
 *.lib
 *.pdb
-
-# Build results
 [Dd]ebug/
-[Dd]ebugPublic/
 [Rr]elease/
-[Rr]eleases/
 x64/
 x86/
-bld/
-[Bb]in/
-[Oo]bj/
-[Ll]og/
-[Ll]ogs/
-out/
-.vs/
-vcpkg_installed/
 
-# Runtime files
+# Files the game writes when run from the repo
 imgui.ini
 rt64.log
-
-node_modules/
-
-# Recompiler binaries built from the vendored submodule; never commit these.
-/N64Recomp
-/RSPRecomp
-
-.DS_Store
-gamecontrollerdb.txt
-
-# Ghidra project files and any local exports containing copyrighted disassembly text
-*.gpr
-*.rep/
-ghidra_exports/
-
-# splat working output (regenerated from the ROM, not source of truth once curated)
-/asm/
-/.splache/
-
-# Never commit raw excerpts of the ROM itself, however they're captured
-assets/unk_*.bin
-*.7z
-
-# Release packaging (tools/package-windows.ps1)
-build-release/
-dist/
-
-# Symlink to the submodule's recompiler (see BUILDING.md)
-/N64Recomp
-
-# Runtime crash reports (src/main/crash_handler.cpp)
 crash_log.txt
-build-release-linux/
 pacing_log.txt
+gamecontrollerdb.txt

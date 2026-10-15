@@ -57,7 +57,7 @@ foreach ($file in @("BattleTanxRecompiled.exe", "SDL2.dll", "dxil.dll", "dxcompi
     Copy-Item (Join-Path $BuildDir $file) $stage
 }
 Copy-Item "assets" $stage -Recurse
-Copy-Item "README.md", "COPYING" $stage
+Copy-Item "README.md", "CHANGELOG.md", "COPYING" $stage
 
 # License notices for the third-party code built into the exe or shipped
 # beside it. Each library's own file, gathered under licenses\.
