@@ -7,6 +7,40 @@ engine). PROGRESS.md has the short version.
 
 # Log
 
+## 2026-10-15, round 10: exact projection on interpolated frames (explosions flashing)
+
+**Reports.**
+- The pacing log from the user's PC: after loading, every frame took
+  exactly 2 VIs and none was late. The game's pacing is steady, so the
+  driving stutter is between RT64 and the display. Asked for the monitor
+  refresh rate and GPU, and for tests with MSAA off and with a Manual
+  framerate.
+- Explosions flash only at the Display framerate, never at Original.
+
+**Cause.** The world is drawn with one combined camera x perspective
+matrix. On real frames RT64 renders it as is (lib patch 0001); on
+interpolated frames it rebuilds it from its own split into view and
+projection (`matrixDecomposeViewProj`), and that projection varies from
+frame to frame with the fixed-point input (measured in the sandbox: depth
+terms -1.01612 to -1.01793 and -32.22 to -32.28). At a typical distance
+that moves the world's depth by around 10 units on interpolated frames
+only. Fire and smoke sprites are drawn with the game's exact camera-less
+projection, often right against the ground or a wreck, so they passed the
+depth test on real frames and failed in between: flashing, worst for the
+player's own explosion in front of the camera. Ruled out in the sandbox
+along the way: scene pairing (the sprites' scene pairs only with itself)
+and sprite pairing (round 8 holds); far fewer mis-paired debris shards
+than needed to explain it.
+
+**Fix** (`lib-patches/rt64/0006-exact-projection-for-estimated-view.patch`):
+after the split, the projection's first three columns are recomputed as
+inverse(view) x the game's matrix, so view x projection is exactly the
+game's matrix (the w column already was). Interpolated frames blend
+between exact projections, consistent with real frames and the sprites.
+Sandbox: view x projection now matches to float precision (0.0005 on
+values around 3000), projections still classify as perspective, and the
+picture is unchanged.
+
 ## 2026-10-15, round 9: frame pacing log (intermittent stutter driving)
 
 **Report.** Driving is mostly smooth now, but stutter comes and goes; the
