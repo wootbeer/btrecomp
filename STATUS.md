@@ -7,6 +7,25 @@ engine). PROGRESS.md has the short version.
 
 # Log
 
+## 2026-10-15, round 12: draw distance pinned at the level's maximum
+
+The sequel's round 110 again. The draw distance at `0x80125858` (also the
+far plane: `func_80083394` rebuilds the projection with it, and keeps its
+square at `0x801C9174` for culling) is adjusted once a second by
+`func_8007AD2C`: with the frame count above 20 (26 in some modes) it grows
+by 50 towards the level's maximum (`func_80086AE8`, the table at
+`0x80125A30`), otherwise `func_800862B4` takes 100 off, down to 1800. Any
+slow second pulled distant scenery in and it popped back later, and the
+far plane (with the fog) changed as it went: the sandbox's varying
+projection depth terms in round 10. Each level starts at its maximum
+(`func_80081AD0`), so `func_800862B4` is stubbed and the distance stays
+there. Sandbox (below 20 fps, the worst case): 2000 throughout.
+
+Also checked, the sequel's round 108 (cutscene camera with far plane 0):
+not needed here. Both of this game's perspective setups have valid planes
+(near 16; far 5000 or the level's distance), and the draw distance is
+2000 from the first frame.
+
 ## 2026-10-15, round 11: frame step snapped to VIs; flying debris and fireballs keep their IDs
 
 **Reports.** 144 Hz monitor; the driving stutter is visible in game, with

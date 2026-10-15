@@ -14,7 +14,14 @@ symbols_file_path = "BattleTanxSyms/battletanx.us.rev0.syms.toml"
 # Cache-invalidation loops from the game's own exception-vector setup
 # (func_80077110 installs its vectors, then calls these). The host's caches
 # are coherent, and N64Recomp can't translate `cache`.
-stubs = ["func_800771BC", "func_800771D8"]
+# func_800862B4 is the draw distance governor's step down: once a second
+# func_8007AD2C compares the frame count with 20 (26 in some modes) and
+# moves the draw distance at 0x80125858 (also the far plane) up 50 towards
+# the level's maximum or down 100 towards 1800. Any slow second (a busy
+# explosion, a load) pulled distant scenery in, and it popped back later.
+# Each level starts at its maximum, so without the step down it stays there
+# (as in the sequel's port, btgarecomp STATUS.md round 110).
+stubs = ["func_800771BC", "func_800771D8", "func_800862B4"]
 ignored = []
 
 # --- Busy-wait loops ---------------------------------------------------------
