@@ -84,3 +84,4 @@ dist/
 # Runtime crash reports (src/main/crash_handler.cpp)
 crash_log.txt
 build-release-linux/
+pacing_log.txt

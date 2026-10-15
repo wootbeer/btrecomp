@@ -10,6 +10,9 @@ extern void* func_8007F204(s32 flag);
 // screen-edge scissors in its viewport display lists.
 extern void btx_fix_screen_edge_scissors(void);
 
+// src/game/pacing_log.cpp: frame pacing statistics (BTX_PACING_LOG=1).
+extern void btx_pacing_vi(u32 pending, u32 threshold, u32 frame_ready);
+
 // func_80079530 is the game's VI swap routine: the VI dispatch thread runs it
 // once per VI, and it is the only caller of osViSwapBuffer. That makes it the
 // place to pump recompui's per-frame UI callbacks (recomp_run_ui_callbacks)
@@ -30,10 +33,12 @@ RECOMP_PATCH void func_80079530(void* state) {
     u16* unblank_pending = (u16*) ((u8*) state + 0x1F2);
 
     if (*swap_pending < *swap_threshold) {
+        btx_pacing_vi(*swap_pending, *swap_threshold, 0);
         return;
     }
 
     void* frame_buffer = func_8007F204(1);
+    btx_pacing_vi(*swap_pending, *swap_threshold, frame_buffer != 0);
     if (frame_buffer == 0) {
         return;
     }

@@ -7,6 +7,31 @@ engine). PROGRESS.md has the short version.
 
 # Log
 
+## 2026-10-15, round 9: frame pacing log (intermittent stutter driving)
+
+**Report.** Driving is mostly smooth now, but stutter comes and goes; the
+user also still sees explosions flash.
+
+**Video** (driving, 60 fps): the road moves a steady 3-4 px per display
+frame, but every 10-15 frames one frame repeats and a neighbouring step is
+doubled. That's pacing: now and then a game frame takes 3 VIs instead of
+2, and RT64 learns a frame's length only once it's over, so it runs out of
+in-between frames. The swap routine (`func_80079530`) swaps once the
+threshold (2 VIs) has passed and the next frame is finished, so a 3-VI
+frame means the frame was finished late. Not the yields (they don't
+sleep), nor the VI timer (same runtime as the sequel, steady 30 fps).
+
+**Added** `src/game/pacing_log.cpp`, called from the patched swap routine
+every VI (`btx_pacing_vi`, `patches/syms.ld` `0x8F0000F8`). With
+`BTX_PACING_LOG=1` it writes `pacing_log.txt` every 300 VIs: VIs per shown
+frame (1/2/3/4+) and "late" VIs, where a swap was due but the frame wasn't
+finished. Needs a log from the user's PC.
+
+**Explosions.** In the sandbox the fire sprites pair with themselves
+(round 8) and their camera-less projection scene pairs with itself, never
+with the world's. Asked the user whether explosions also flash at the
+Original framerate (the game's own effect) and for a clip.
+
 ## 2026-10-14, round 8: effect sprites tracked in world space (flicker)
 
 **Report.** Round 7 is much smoother. Some particle effects still flicker
