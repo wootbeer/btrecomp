@@ -11,11 +11,23 @@ and leave the game's own behaviour, look and balance alone.
 
 - **The game**: boot, intro, menus, Controller Pak saves, the campaign
   story and the first mission, tested in the development sandbox (Linux,
-  software Vulkan). Not yet played through.
+  software Vulkan) and on Windows. Not yet played through.
 - **Widescreen** (Expand): the 3D view fills the window and the world isn't
   culled at the old 4:3 edges; the gameplay HUD's left and right parts sit
-  at the window edges (1-2 players).
-- **Higher framerates**: matrix IDs for RT64's interpolation (being tested).
+  at the window edges (1-2 players); letterboxed 3D cutscenes are black at
+  the sides.
+- **Higher framerates** (Display): confirmed smooth on Windows at 144 Hz
+  for driving, turning and explosions. Matrix IDs for RT64's interpolation
+  (scenery, effect sprites tracked in world space, debris), the frame step
+  snapped to whole VIs, and RT64 fixes (`lib-patches/rt64/`): frame rate
+  from the latest VI count, exact projection on interpolated frames, the
+  camera interpolated as a camera, match distance limits. Some shaking of
+  the player's tank remains, likely the game's own (also at the original
+  framerate). `BTX_PACING_LOG=1` writes `pacing_log.txt` for stutter
+  reports.
+- **Draw distance** held at each level's maximum (the framerate governor
+  no longer pulls it in).
+- **Controls**: Z (fire) on the right trigger by default.
 - **Linux / Steam Deck package** (`tools/package-linux.sh`), alongside the
   Windows one.
 - **Recompilation**: all game code is in one section with no overlays. The
@@ -33,9 +45,8 @@ and leave the game's own behaviour, look and balance alone.
 ## Next
 
 - Play through menus and missions; fix what turns up.
-- Port the rest of the sequel's game-specific fixes to their counterparts
-  here: frame timing (the frame timer is `func_8007AD2C`), cutscene
-  letterboxing in widescreen, the cutscene projection.
+- The sequel's game-specific fixes are all ported or checked (STATUS.md
+  round 13).
 - Windows and Linux (Steam Deck) releases; the Linux package is built and
   runs here (software Vulkan), not yet tried on a Deck.
 
@@ -43,7 +54,8 @@ and leave the game's own behaviour, look and balance alone.
 
 | Path | What |
 |---|---|
-| `battletanx.us.rev0.toml` | N64Recomp config: stubs, hooks, division guards |
+| `battletanx.us.rev0.toml` | N64Recomp config: stubs, hooks, division guards (the build regenerates `RecompiledFuncs/` when it changes) |
+| `lib-patches/` | Local fixes to RT64 and plume, applied at configure time |
 | `BattleTanxSyms/` | Symbol file (function boundaries), generated |
 | `aspMain.us.rev0.toml` | RSP audio microcode config |
 | `src/main/` | Frontend: window, audio, input, config, crash reporting |

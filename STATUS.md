@@ -7,6 +7,14 @@ engine). PROGRESS.md has the short version.
 
 # Log
 
+## 2026-10-15: rounds 14-15 confirmed
+
+On Windows at 144 Hz, Display framerate: turning hard is good, straight
+driving better, the noticeable stutter gone; cutscenes and explosions
+better. Some shaking of the tank remains, which the user thinks is the
+game itself (the hull's pitch changes slightly from frame to frame in the
+sandbox logs too).
+
 ## 2026-10-15, round 15: letterboxed 3D cutscenes black at the sides
 
 **Report** (user screenshot, Expand): beside the 4:3 frame of a 3D
