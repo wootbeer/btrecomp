@@ -46,9 +46,7 @@ See [BUILDING.md](BUILDING.md).
 ## Issues and Limitations
 
 Known:
-- Beta. Tested on Windows. The Linux build hasn't been tested on a real
-  Steam Deck yet, let me know how it goes.
-- The campaign hasn't been played all the way through yet.
+- Beta. Tested on Windows.
 
 Else:
 - Please see the "Issues" section in GitHub. Screenshots or a short video
