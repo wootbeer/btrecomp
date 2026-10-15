@@ -7,6 +7,41 @@ engine). PROGRESS.md has the short version.
 
 # Log
 
+## 2026-10-15, round 11: frame step snapped to VIs; flying debris and fireballs keep their IDs
+
+**Reports.** 144 Hz monitor; the driving stutter is visible in game, with
+or without MSAA, only at the Display framerate. Explosions still flicker,
+"only the explosions that fly away from the object". Cutscenes show extra
+things beside them in Expand, as the sequel's did (screenshot requested:
+the attract-mode intro and the story slides look right in the sandbox).
+
+**Stutter: the sequel's rounds 88-89 again.** `func_8007AD2C`, the
+per-frame timer, measures the time since the last frame with `osGetTime()`
+and stores it as a float at `0x801257B0` (raw x 30 / 1,000,000, with the
+same clock-rate scaling as the sequel, so one VI is 0.375). The host clock
+makes it wobble (measured: 0.7495-0.7599, 1.1245-1.1434), so objects move
+unevenly while frames are shown on time; the display rate spreads each
+uneven step over its in-between frames. Fix (`src/game/frame_dt_fix.cpp`,
+hook before `0x8007B0AC`): rounded to whole VIs, as in the sequel. A first
+try at 0.5 per VI would have run everything a third fast; the measured
+values (0.75, 1.125, 1.5) settled it.
+
+**Flying debris.** Matrices kept in objects, loaded several times a frame
+and moving (debris, burning wreckage) were on automatic matching since
+round 5; during the player's explosion up to 95 a frame, and RT64 swapped
+identical pieces. They now keep their address as ID when the object drew
+the same number of parts in the two previous frames (anything whose count
+changes stays automatic, as round 5 had it).
+
+**Fireballs.** Sprites are now paired with the one from the last frame
+closest to where it was heading (last position plus last movement), so
+fast ones thrown off an explosion stay paired with themselves; a sprite
+seen once gets twice the room. Their rotation is no longer interpolated:
+the game gives each a new random spin every frame, and interpolating it
+turned them through the angles in between. Sandbox (long idle run, the
+player killed): ID-tagged transforms that jump or flip in a frame went
+from 20 to 1.
+
 ## 2026-10-15, round 10: exact projection on interpolated frames (explosions flashing)
 
 **Reports.**

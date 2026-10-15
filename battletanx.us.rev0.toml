@@ -197,6 +197,15 @@ text = """
     btx_interp_ready_matrix(rdram, 0xD8, (uint32_t)ctx->r4);
 """
 
+# Frame step snapped to whole VIs (src/game/frame_dt_fix.cpp): func_8007AD2C
+# stores the time since the last frame, from osGetTime(), at 0x801257B0.
+[[patches.hook]]
+func = "func_8007AD2C"
+before_vram = 0x8007B0AC
+text = """
+    btx_frame_dt(rdram, ctx);
+"""
+
 # Effect sprites (fire, smoke): func_80080C60 builds each one's matrix in the
 # frame's pool from a node in a per-frame list ($s1), whose world position
 # identifies the sprite.

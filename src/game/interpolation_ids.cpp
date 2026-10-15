@@ -95,14 +95,14 @@ namespace {
     // RT64's AUTO components (its default): AUTO position stops interpolating
     // on any frame where an object's speed jumps 10x over the last one, so
     // uneven per-frame motion flips between smoothed and snapped frames.
-    uint32_t matrix_group_params(uint32_t id, bool push) {
+    uint32_t matrix_group_params(uint32_t id, bool push, bool rotation = true) {
         constexpr uint32_t kInterpolate = 1, kAuto = 2;
         const uint32_t order = (id == kIdAuto) ? 1u : 0u; // AUTO ordering for automatic, LINEAR for IDs
         return (push ? 1u : 0u) |   // push
             (0u << 1) |             // proj: modelview
             (1u << 2) |             // mode: decompose
             (kInterpolate << 3) |   // position
-            (kInterpolate << 5) |   // rotation
+            ((rotation ? kInterpolate : 0u) << 5) | // rotation
             (kInterpolate << 7) |   // scale
             (kInterpolate << 9) |   // skew
             (kInterpolate << 11) |  // perspective
@@ -126,6 +126,8 @@ namespace {
     };
     Generation generations[2];
     int current = 0;
+    // Ready Mtx loads two frames ago, for the shared-matrix rule below.
+    std::unordered_map<uint32_t, uint32_t> ready_uses_before;
 
     uint32_t id_for_float_matrix(uint32_t source, uint32_t mtx) {
         Generation& now = generations[current];
@@ -146,7 +148,7 @@ namespace {
     // Per list, whether tagging has stopped this frame (list nearly full).
     bool list_stopped[3];
 
-    void write_group(uint8_t* rdram, int list, uint32_t id) {
+    void write_group(uint8_t* rdram, int list, uint32_t id, bool rotation = true) {
         if (list_stopped[list]) {
             return;
         }
@@ -168,7 +170,7 @@ namespace {
         const gpr h = kseg0(head);
         MEM_W(0x0, h) = (int32_t)0x6400000Cu; // G_EX_MATRIXGROUP_V1
         MEM_W(0x4, h) = (int32_t)id;
-        MEM_W(0x8, h) = (int32_t)matrix_group_params(id, false);
+        MEM_W(0x8, h) = (int32_t)matrix_group_params(id, false, rotation && (id != kIdAuto));
         MEM_W(0xC, h) = 0;
         MEM_W(info.head_field, state) = (int32_t)(head + kGroupBytes);
     }
@@ -215,7 +217,19 @@ namespace {
         }
         auto prev_contents = last.ready_contents.find(mtx);
         const bool unchanged = (prev_contents != last.ready_contents.end()) && (prev_contents->second == contents);
-        return unchanged ? mtx : kIdAuto;
+        if (unchanged) {
+            return mtx;
+        }
+        // Moving and loaded several times a frame: one object drawn in parts
+        // (flying debris, burning wreckage) keeps the same number of parts
+        // from frame to frame, and keeps its ID. On automatic matching RT64
+        // swapped identical pieces with each other, and the explosions'
+        // flying debris flickered. Anything whose count changes stays
+        // automatic, as round 5 had it for all of them.
+        auto before = ready_uses_before.find(mtx);
+        const bool stable = (prev != last.ready_uses.end()) && (before != ready_uses_before.end()) &&
+            (prev->second == before->second) && (uses <= prev->second);
+        return stable ? mtx : kIdAuto;
     }
 }
 
@@ -232,11 +246,13 @@ extern "C" void btx_interp_float_matrix(uint8_t* rdram, uint32_t head_field, uin
 // game frames. The function draws them from a list it rebuilds every frame,
 // so nothing in the game keeps a sprite at one address, but each list node
 // has the sprite's world position (floats at +0x4/+0x8/+0xC): a sprite is
-// paired with the nearest one from last frame there, unaffected by the
-// camera, and keeps its ID. New sprites get new IDs.
+// paired with the one from last frame closest to where that one was heading
+// (unaffected by the camera), and keeps its ID. New sprites get new IDs.
 namespace {
     struct Sprite {
         float x, y, z;
+        float vx, vy, vz; // movement over the last frame (0 for a new one)
+        bool tracked;     // paired with one last frame, so the velocity is known
         uint32_t id;
         bool claimed;
     };
@@ -244,9 +260,12 @@ namespace {
     uint32_t next_sprite_id = 0;
     uint32_t next_ready_id = 0;
 
-    // A sprite moving further than this in a frame is a new one. Smoke and
-    // fire drift a few units a frame.
-    constexpr float kSpriteMaxStep = 64.0f;
+    // How far a sprite may be from where it was heading (its last position
+    // plus its last movement) and still be the same one. Smoke drifts a few
+    // units a frame; fireballs thrown off an explosion move fast but
+    // steadily. A sprite seen once has no velocity yet: it gets twice the
+    // room.
+    constexpr float kSpriteMaxMiss = 64.0f;
 
     float read_float(uint8_t* rdram, uint32_t address) {
         const int32_t word = MEM_W(0, kseg0(address));
@@ -270,44 +289,50 @@ extern "C" void btx_interp_effect_sprite(uint8_t* rdram, uint32_t node) {
     const float y = read_float(rdram, node + 0x8);
     const float z = read_float(rdram, node + 0xC);
     Sprite* best = nullptr;
-    float best_distance = kSpriteMaxStep * kSpriteMaxStep;
+    float best_distance = 0.0f;
     for (Sprite& sprite : sprites_last) {
         if (sprite.claimed) {
             continue;
         }
-        const float dx = sprite.x - x, dy = sprite.y - y, dz = sprite.z - z;
+        const float dx = sprite.x + sprite.vx - x, dy = sprite.y + sprite.vy - y, dz = sprite.z + sprite.vz - z;
         const float distance = dx * dx + dy * dy + dz * dz;
-        if (distance <= best_distance) {
+        const float room = sprite.tracked ? kSpriteMaxMiss : 2.0f * kSpriteMaxMiss;
+        if ((distance <= room * room) && ((best == nullptr) || (distance < best_distance))) {
             best = &sprite;
             best_distance = distance;
         }
     }
-    uint32_t id;
+    Sprite sprite{ x, y, z, 0.0f, 0.0f, 0.0f, false, 0, false };
     if (best != nullptr) {
         best->claimed = true;
-        id = best->id;
+        sprite.id = best->id;
+        sprite.vx = x - best->x;
+        sprite.vy = y - best->y;
+        sprite.vz = z - best->z;
+        sprite.tracked = true;
     }
     else {
         // IDs of their own, below the addresses used as IDs elsewhere.
-        id = 0x10000000u | (next_sprite_id++ & 0x0FFFFFFFu);
+        sprite.id = 0x10000000u | (next_sprite_id++ & 0x0FFFFFFFu);
     }
-    sprites_now.push_back({ x, y, z, id, false });
+    sprites_now.push_back(sprite);
+    const uint32_t id = sprite.id;
     next_ready_id = id;
 }
 
 // Ready-Mtx emitters: the Mtx's address is the object's, unless it's from
 // the per-frame pool.
 extern "C" void btx_interp_ready_matrix(uint8_t* rdram, uint32_t head_field, uint32_t mtx) {
-    uint32_t id;
     if (next_ready_id != 0) {
-        id = next_ready_id;
+        // An effect sprite: the game gives each a new random spin every
+        // frame (the fire's flicker), so its rotation is this frame's, not
+        // turned through the angles in between.
+        write_group(rdram, list_index(head_field), next_ready_id, false);
         next_ready_id = 0;
+        return;
     }
-    else {
-        const bool pooled = in_pool(rdram, gfx_state(rdram), mtx);
-        id = pooled ? kIdAuto : id_for_ready_matrix(rdram, mtx);
-    }
-    write_group(rdram, list_index(head_field), id);
+    const bool pooled = in_pool(rdram, gfx_state(rdram), mtx);
+    write_group(rdram, list_index(head_field), pooled ? kIdAuto : id_for_ready_matrix(rdram, mtx));
 }
 
 // The per-view camera matrix: automatic matching from here on.
@@ -323,6 +348,7 @@ extern "C" void btx_interp_auto(uint8_t* rdram, uint32_t head_field) {
 extern "C" void btx_interp_frame_base(uint8_t* rdram, recomp_context* ctx) {
     current ^= 1;
     generations[current].source_mtx.clear();
+    ready_uses_before = std::move(generations[current].ready_uses);
     generations[current].ready_uses.clear();
     generations[current].ready_contents.clear();
     next_sprite_generation();
