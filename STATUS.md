@@ -7,6 +7,24 @@ engine). PROGRESS.md has the short version.
 
 # Log
 
+## 2026-10-17, round 17: last game frame left at the menu's sides
+
+**Report** (user, Windows): after starting a game and quitting to the main
+menu, the widescreen sides show leftover picture.
+
+**Cause.** The frame clear (func_8007DC5C) only fills the colour buffer on
+3D frames. The logos, menus and 2D story screens skip that fill (their
+pictures cover the 4:3 frame; their colour image is 0x400, from
+func_8007E150), so nothing draws the sides: black after boot, but after
+a game the last 3D frames stay there.
+
+**Fix.** src/game/cutscene_letterbox.cpp: when the clear has no colour
+fill, append the same full-screen black fill the cutscene letterbox uses
+(RT64 stretches it to the window edges), then restore the clear's
+scissor. The game redraws its whole 4:3 frame every time, so nothing is
+lost: checked boot, title, attract demo, menus after a quit, and the story
+screens whose panels build up.
+
 ## 2026-10-17, round 16: game ran at 3/4 speed; cheat codes checked
 
 **Report** (Discord): tank movement and turning much slower than they

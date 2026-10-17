@@ -5,6 +5,8 @@
 ### Fixed
 - Game running at 3/4 speed. Tanks, turning, timers and everything else
   now run at the original speed
+- Leftover picture at the sides of the menus after quitting a game in
+  widescreen
 
 ## [0.1.0 (10-15-2026)]
 
