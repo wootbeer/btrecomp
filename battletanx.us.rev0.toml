@@ -204,6 +204,19 @@ text = """
     btx_interp_ready_matrix(rdram, 0xD8, (uint32_t)ctx->r4);
 """
 
+# Game speed. The game's osInitialize ends with osClockRate = osClockRate * 3
+# / 4 (62.5 MHz to 46.875 MHz, the CPU count rate; 0x801123A0-0x801123E8).
+# The runtime replaces osInitialize and skips that, and every game timer
+# divides osGetTime() by osClockRate, so the whole game ran at 3/4 speed
+# (a VI was 0.375 frame-step units instead of 0.5). Do it right after the
+# call, in the boot function, before the game's threads start.
+[[patches.hook]]
+func = "func_800779CC"
+before_vram = 0x800779E4
+text = """
+    btx_init_clock_rate(rdram);
+"""
+
 # Frame step snapped to whole VIs (src/game/frame_dt_fix.cpp): func_8007AD2C
 # stores the time since the last frame, from osGetTime(), at 0x801257B0.
 [[patches.hook]]

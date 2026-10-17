@@ -7,6 +7,34 @@ engine). PROGRESS.md has the short version.
 
 # Log
 
+## 2026-10-17, round 16: game ran at 3/4 speed; cheat codes checked
+
+**Report** (Discord): tank movement and turning much slower than they
+should be; cheat codes not working.
+
+**Speed cause.** The game's osInitialize (0x801121E0) ends with
+`osClockRate = osClockRate * 3 / 4` (0x801123A0-0x801123E8), turning
+62.5 MHz into 46.875 MHz, the CPU count rate. The runtime replaces
+osInitialize and skips that, so osClockRate (0x80145DA0) stayed at
+62.5 MHz. The frame timer (func_8007AD2C) and every other game timer
+divide osGetTime() by it, so a VI came out as 0.375 frame-step units
+instead of 0.5 and the whole game ran at 3/4 speed. The earlier "the game
+uses the CPU count rate where the clock rate is meant" note was wrong: on
+hardware the value is already the count rate when the game reads it.
+
+**Fix.** `btx_init_clock_rate` (src/game/frame_dt_fix.cpp), hooked right
+after the osInitialize call in func_800779CC (0x800779E4), does the same
+3/4 step. The frame-step snap unit is now 0.5. Measured in the sandbox:
+raw frame steps of 1.0, 1.5 and 2.0 for 2-, 3- and 4-VI frames (were 0.75,
+1.125, 1.5).
+
+The sequel's port has the same bug (its frame_dt_fix.cpp also snaps to
+0.375).
+
+**Cheats.** They work: in the sandbox TDZ shows "TOADS" and LTSFBLLTS
+shows "UNLIMITED AMMO" (ammo stayed at 70 after firing). Codes are
+entered on Game Setup > Input Code and use only consonants.
+
 ## 2026-10-15: beta release preparation
 
 - README rewritten in the sequel's port's style; CHANGELOG.md added (0.1.0,

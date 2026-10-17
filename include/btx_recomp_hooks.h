@@ -26,6 +26,7 @@ void btx_hud_anchor(uint8_t* rdram, recomp_context* ctx);
 void btx_interp_float_matrix(uint8_t* rdram, uint32_t head_field, uint32_t source, uint32_t mtx);
 void btx_interp_ready_matrix(uint8_t* rdram, uint32_t head_field, uint32_t mtx);
 void btx_interp_effect_sprite(uint8_t* rdram, uint32_t node);
+void btx_init_clock_rate(uint8_t* rdram);
 void btx_frame_dt(uint8_t* rdram, recomp_context* ctx);
 void btx_interp_auto(uint8_t* rdram, uint32_t head_field);
 void btx_interp_frame_base(uint8_t* rdram, recomp_context* ctx);

@@ -1,5 +1,11 @@
 # Changelog
 
+## [Unreleased]
+
+### Fixed
+- Game running at 3/4 speed. Tanks, turning, timers and everything else
+  now run at the original speed
+
 ## [0.1.0 (10-15-2026)]
 
 First public beta.
