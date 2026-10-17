@@ -7,6 +7,18 @@ engine). PROGRESS.md has the short version.
 
 # Log
 
+## 2026-10-17: 0.1.1; lives counter flicker parked
+
+Release 0.1.1: the game speed fix (round 16) and the black menu sides
+(round 17).
+
+Parked: the user saw the lives counter (top left) flash between whole and
+cut off at the left edge of the 4:3 area, as if drawn moved out to the
+window edge but clipped by the unwidened scissor. Not reproduced in the
+sandbox (60 and 144 fps, taking hits, after a kill; the HUD list draws it
+the same every frame, with no scissor commands of its own), and the user
+couldn't reproduce it again either.
+
 ## 2026-10-17, round 17: last game frame left at the menu's sides
 
 **Report** (user, Windows): after starting a game and quitting to the main

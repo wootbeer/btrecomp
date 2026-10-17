@@ -1,6 +1,6 @@
 # Changelog
 
-## [Unreleased]
+## [0.1.1 (10-17-2026)]
 
 ### Fixed
 - Game running at 3/4 speed. Tanks, turning, timers and everything else
