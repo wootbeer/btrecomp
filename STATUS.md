@@ -7,6 +7,32 @@ engine). PROGRESS.md has the short version.
 
 # Log
 
+## 2026-11-04, round 20: frame step counted from swapped VIs (turning jitter)
+
+**Report** (owner, Windows, Display framerate): a lot of jitter when
+turning since 0.1.1. Not round 18's matching limit: logged here, no group
+came near it during play (largest 64 pairs), and the 256-unit caps
+rejected no ID pairs.
+
+**Owner's pacing log:** 1,200 frames, nearly all 2 VIs (a few 4+ at the
+start), so frames are shown evenly and the step is what varies. The game
+measures its step with osGetTime() (the host clock), which wobbles about
++/-25% of a 2-VI frame (the sequel's port measured the same); rounded to
+whole VIs, some 2-VI frames came out 1 or 3 VIs. Each frame also moves by
+the previous frame's step (logged here: the camera's yaw change per frame
+follows the step one frame earlier), as on hardware, where every frame is
+alike. A wrong step is a jump at the display rate, turning most of all.
+
+**Fix** (`src/game/frame_dt_fix.cpp`): the step is the number of VIs of
+the frames swapped since the last measurement, x 0.5. The game's VI swap
+routine (patches/recompui_patches.c, through `btx_pacing_vi`) adds each
+swapped frame's VIs to a counter (`btx_frame_swapped`); the step hook
+takes what's been added since its last call. Each swap counts once, so the
+game's clock keeps time. With nothing swapped since (only the first frame
+here) or more than 16 VIs (a load), the measurement is kept, rounded to
+whole VIs as before. Logged here: one 0 at boot, then counts matching the
+frames' lengths.
+
 ## 2026-11-04, round 19: Cheats and Hacks tabs (stock codes, GameShark)
 
 Owner's request: GameShark codes as in the sequel's port and the other

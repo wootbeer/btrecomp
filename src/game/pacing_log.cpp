@@ -1,4 +1,5 @@
-// Frame pacing statistics, for stutter reports (BTX_PACING_LOG=1).
+// Frame pacing statistics, for stutter reports (BTX_PACING_LOG=1), and the
+// swaps the frame step is counted from (src/game/frame_dt_fix.cpp).
 //
 // The game shows a new frame only when its VI routine (func_80079530,
 // patched in patches/recompui_patches.c) finds both that enough VIs have
@@ -35,13 +36,19 @@ namespace {
     uint32_t windows = 0;
 }
 
+// src/game/frame_dt_fix.cpp: the frame step comes from the VIs swapped.
+void btx_frame_swapped(uint32_t vis);
+
 extern "C" void btx_pacing_vi(uint8_t*, recomp_context* ctx) {
-    if (!enabled()) {
-        return;
-    }
     const uint32_t pending = (uint32_t)ctx->r4;
     const uint32_t threshold = (uint32_t)ctx->r5;
     const bool frame_ready = ctx->r6 != 0;
+    if (pending >= threshold && frame_ready) {
+        btx_frame_swapped(pending);
+    }
+    if (!enabled()) {
+        return;
+    }
     stats.vis++;
     stats.threshold = threshold;
     if (pending >= threshold) {
