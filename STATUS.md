@@ -23,7 +23,7 @@ LVFRVR 0x80135772, LTSLTSGNGS 0x8012579A, FRGZ 0x80135775, TDZ 0x80135776.
 A toggle keeps its flags set while on and clears them once when turned off,
 unless another toggle that's on shares the flag (0x8012579A).
 
-**GameShark codes** (Hacks tab, 49 entries, from the owner's list). The
+**GameShark codes** (Hacks tab, 45 entries, from the owner's list). The
 list mixed in the sequel's codes (0x80117F49 level select, 0x80125AB0-
 0x80125ABC invulnerability, gangs, mini tanks): they land on unrelated data
 here and are left out, as are the codes that set the stock flags
