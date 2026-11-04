@@ -3,6 +3,9 @@
 ## [Unreleased]
 
 ### Added
+- Cheats tab: the game's own codes as on/off toggles, no typing needed
+- Hacks tab: GameShark codes for this game (radar, cloak, infinite
+  ammo and weapons, green or invisible tanks, go through walls and more)
 - Screen Filter (CRT, Scanlines, LCD) and Bloom options at the end of the
   Graphics tab, like in Global Assault. Off by default
 

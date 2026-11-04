@@ -51,6 +51,7 @@
 #include "librecomp/game.hpp"
 #include "librecomp/helpers.hpp"
 
+#include "btx_cheats.h"
 #include "btx_config.h"
 
 #if defined(BTX_HAS_APP_ICON)
@@ -481,6 +482,7 @@ int main(int argc, char** argv) {
     btx::config::add_graphics_options(recompui::config::create_graphics_tab());
     recompui::config::create_controls_tab();
     recompui::config::create_sound_tab();
+    btx::cheats::add_cheats_tabs();
     recompui::config::create_mods_tab();
     recompui::config::finalize();
 

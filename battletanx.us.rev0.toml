@@ -244,6 +244,268 @@ text = """
     btx_interp_frame_base(rdram, ctx);
 """
 
+# --- Cheats -----------------------------------------------------------------
+# The Cheats and Hacks tabs (src/game/cheats.cpp). btx_cheats_frame applies the
+# stock codes' flags and the GameShark codes that write memory, once a pass of
+# the controller thread's loop (func_800A8C88), which runs on the menus as
+# well as in game.
+[[patches.hook]]
+func = "func_800A8C88"
+before_vram = 0x800A8CE8
+text = """
+    { extern void btx_cheats_frame(uint8_t *rdram); btx_cheats_frame(rdram); }
+"""
+
+# The GameShark codes that change one instruction of the game's code. Each
+# instruction becomes a nop, and a hook runs either the original or the
+# code's version, by btx_cheat(n) (the Hook numbers in src/game/cheats.cpp).
+
+# Who's Who: All Tanks Are Green.
+# lw          $fp, 0x78($sp)
+[[patches.instruction]]
+func = "func_80082AA8"
+vram = 0x80082AB0
+value = 0x00000000
+
+[[patches.hook]]
+func = "func_80082AA8"
+before_vram = 0x80082AB0
+text = """
+    { extern int btx_cheat(int hook); if (!btx_cheat(0)) { ctx->r30 = MEM_W(ctx->r29, 0X78); } }
+"""
+
+# All Tanks Are Invisible.
+# lbu         $t1, 0x7F($sp)
+[[patches.instruction]]
+func = "func_80082AA8"
+vram = 0x80082AB4
+value = 0x00000000
+
+[[patches.hook]]
+func = "func_80082AA8"
+before_vram = 0x80082AB4
+text = """
+    { extern int btx_cheat(int hook); if (!btx_cheat(1)) { ctx->r9 = MEM_BU(ctx->r29, 0X7F); } }
+"""
+
+# Light Colored Tanks.
+# lwc1        $f8, 0x1700($at) -> lwc1 $f8, 0x100($at)
+[[patches.instruction]]
+func = "func_80086DC0"
+vram = 0x80086DDC
+value = 0x00000000
+
+[[patches.hook]]
+func = "func_80086DC0"
+before_vram = 0x80086DDC
+text = """
+    { extern int btx_cheat(int hook); if (!btx_cheat(2)) { ctx->f8.u32l = MEM_W(ctx->r1, 0X1700); } else { ctx->f8.u32l = MEM_W(ctx->r1, 0X100); } }
+"""
+
+# Full Control Of Tank In Bonus Levels.
+# addiu       $v0, $zero, 0x2 -> 0x102
+[[patches.instruction]]
+func = "func_80097038"
+vram = 0x800971EC
+value = 0x00000000
+
+[[patches.hook]]
+func = "func_80097038"
+before_vram = 0x800971EC
+text = """
+    { extern int btx_cheat(int hook); if (!btx_cheat(3)) { ctx->r2 = ADD32(0, 0X2); } else { ctx->r2 = ADD32(0, 0X102); } }
+"""
+
+# Regenerated Allied Tanks Are Indestructible. In the delay slot of the beqz
+# at 0x8009FB24 (which reads $v0, not $v1), so it runs before the branch.
+# sltiu       $v1, $s3, 0x1 -> 0x101
+[[patches.instruction]]
+func = "func_8009FA70"
+vram = 0x8009FB28
+value = 0x00000000
+
+[[patches.hook]]
+func = "func_8009FA70"
+before_vram = 0x8009FB24
+text = """
+    { extern int btx_cheat(int hook); if (!btx_cheat(4)) { ctx->r3 = ctx->r19 < 0X1 ? 1 : 0; } else { ctx->r3 = ctx->r19 < 0X101 ? 1 : 0; } }
+"""
+
+# Go Through Walls.
+# cvt.s.w     $f0, $f0
+[[patches.instruction]]
+func = "func_80107F14"
+vram = 0x80108188
+value = 0x00000000
+
+[[patches.hook]]
+func = "func_80107F14"
+before_vram = 0x80108188
+text = """
+    { extern int btx_cheat(int hook); if (!btx_cheat(5)) { CHECK_FR(ctx, 0); ctx->f0.fl = CVT_S_W(ctx->f0.u32l); } }
+"""
+
+# Buildings Don't Show Damage.
+# lbu         $s6, 0x0($fp)
+[[patches.instruction]]
+func = "func_80092734"
+vram = 0x80092990
+value = 0x00000000
+
+[[patches.hook]]
+func = "func_80092734"
+before_vram = 0x80092990
+text = """
+    { extern int btx_cheat(int hook); if (!btx_cheat(6)) { ctx->r22 = MEM_BU(ctx->r30, 0X0); } }
+"""
+
+# Shoot Through Walls. In the delay slot of the beq at 0x8008E524 (which
+# reads $v0 and $s2), so it runs before the branch.
+# swc1        $f2, 0x24($s0) -> swc1 $f1, 0x24($s0)
+[[patches.instruction]]
+func = "func_8008E480"
+vram = 0x8008E528
+value = 0x00000000
+
+[[patches.hook]]
+func = "func_8008E480"
+before_vram = 0x8008E524
+text = """
+    { extern int btx_cheat(int hook); if (!btx_cheat(7)) { MEM_W(0X24, ctx->r16) = ctx->f2.u32l; } else { MEM_W(0X24, ctx->r16) = ctx->f_odd[0]; } }
+"""
+
+# Can't Pick Up Queen Lords.
+# lbu         $v0, 0x2($s1)
+[[patches.instruction]]
+func = "func_80088CF0"
+vram = 0x8008A2F0
+value = 0x00000000
+
+[[patches.hook]]
+func = "func_80088CF0"
+before_vram = 0x8008A2F0
+text = """
+    { extern int btx_cheat(int hook); if (!btx_cheat(9)) { ctx->r2 = MEM_BU(ctx->r17, 0X2); } }
+"""
+
+# Queen Lord Levels: auto win (addu $v0, $zero, $at) or auto lose (no write).
+# addu        $v0, $v0, $a0
+[[patches.instruction]]
+func = "func_800A66C8"
+vram = 0x800A6744
+value = 0x00000000
+
+[[patches.hook]]
+func = "func_800A66C8"
+before_vram = 0x800A6744
+text = """
+    { extern int btx_cheat(int hook); int c = btx_cheat(10); if (c == 0) { ctx->r2 = ADD32(ctx->r2, ctx->r4); } else if (c == 1) { ctx->r2 = ADD32(0, ctx->r1); } }
+"""
+
+# Slow Tanks.
+# lwc1        $f2, 0x24B8($at) -> lwc1 $f2, 0x1B8($at)
+[[patches.instruction]]
+func = "func_8009A354"
+vram = 0x8009A568
+value = 0x00000000
+
+[[patches.hook]]
+func = "func_8009A354"
+before_vram = 0x8009A568
+text = """
+    { extern int btx_cheat(int hook); if (!btx_cheat(11)) { ctx->f2.u32l = MEM_W(ctx->r1, 0X24B8); } else { ctx->f2.u32l = MEM_W(ctx->r1, 0X1B8); } }
+"""
+
+# Buildings Fall Fast.
+# subu        $v0, $v0, $v1 -> subu $v0, $t2, $v1
+[[patches.instruction]]
+func = "func_80091A60"
+vram = 0x80091BBC
+value = 0x00000000
+
+[[patches.hook]]
+func = "func_80091A60"
+before_vram = 0x80091BBC
+text = """
+    { extern int btx_cheat(int hook); if (!btx_cheat(12)) { ctx->r2 = SUB32(ctx->r2, ctx->r3); } else { ctx->r2 = SUB32(ctx->r10, ctx->r3); } }
+"""
+
+# Walls Off.
+# addu        $s2, $a1, $zero -> addu $s2, $zero, $at
+[[patches.instruction]]
+func = "func_8010A680"
+vram = 0x8010A690
+value = 0x00000000
+
+[[patches.hook]]
+func = "func_8010A680"
+before_vram = 0x8010A690
+text = """
+    { extern int btx_cheat(int hook); if (!btx_cheat(13)) { ctx->r18 = ADD32(ctx->r5, 0); } else { ctx->r18 = ADD32(0, ctx->r1); } }
+"""
+
+# Nuke Blast Leaves Air Yellow. In the delay slot of the jal at 0x800F332C,
+# so it runs before the call.
+# andi        $a2, $a2, 0xFF -> 0x1
+[[patches.instruction]]
+func = "func_800F3234"
+vram = 0x800F3330
+value = 0x00000000
+
+[[patches.hook]]
+func = "func_800F3234"
+before_vram = 0x800F332C
+text = """
+    { extern int btx_cheat(int hook); if (!btx_cheat(14)) { ctx->r6 = ctx->r6 & 0XFF; } else { ctx->r6 = ctx->r6 & 0X1; } }
+"""
+
+# Nuke Blast Pink.
+# sb          $a1, 0x57F1($at) -> sb $a1, 0x5701($at)
+[[patches.instruction]]
+func = "func_8008054C"
+vram = 0x8008055C
+value = 0x00000000
+
+[[patches.hook]]
+func = "func_8008054C"
+before_vram = 0x8008055C
+text = """
+    { extern int btx_cheat(int hook); if (!btx_cheat(15)) { MEM_B(0X57F1, ctx->r1) = ctx->r5; } else { MEM_B(0X5701, ctx->r1) = ctx->r5; } }
+"""
+
+# Laser Fire Invisible.
+# addu        $a0, $s7, $zero -> addu $a0, $s0, $at
+[[patches.instruction]]
+func = "func_8008463C"
+vram = 0x800846EC
+value = 0x00000000
+
+[[patches.hook]]
+func = "func_8008463C"
+before_vram = 0x800846EC
+text = """
+    { extern int btx_cheat(int hook); if (!btx_cheat(16)) { ctx->r4 = ADD32(ctx->r23, 0); } else { ctx->r4 = ADD32(ctx->r16, ctx->r1); } }
+"""
+
+# Everybody Is Totally Invisible: the code turns this bne into a non-branch
+# (it also writes $ra, which the function reloads before returning). While on,
+# $s1 is made equal to $v1 for the comparison, so the branch isn't taken, and
+# put back after the delay slot.
+# bne         $v1, $s1, L_8008B4C0
+[[patches.hook]]
+func = "func_8008B48C"
+before_vram = 0x8008B504
+text = """
+    { extern int btx_cheat(int hook); extern void btx_cheat_branch_off(recomp_context *ctx); if (btx_cheat(8)) { btx_cheat_branch_off(ctx); } }
+"""
+
+[[patches.hook]]
+func = "func_8008B48C"
+before_vram = 0x8008B50C
+text = """
+    { extern void btx_cheat_branch_restore(recomp_context *ctx); btx_cheat_branch_restore(ctx); }
+"""
+
 # --- BEGIN GENERATED DIVISION GUARDS (tools/gen_div_guards.py) ---
 
 [[patches.instruction]]

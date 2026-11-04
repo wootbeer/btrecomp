@@ -7,6 +7,47 @@ engine). PROGRESS.md has the short version.
 
 # Log
 
+## 2026-11-04, round 19: Cheats and Hacks tabs (stock codes, GameShark)
+
+Owner's request: GameShark codes as in the sequel's port and the other
+ports; players say typing the game's codes doesn't work for them (it does
+here: round 16), so toggles for those too.
+
+**Stock codes** (Cheats tab, 13 toggles). The Input Code screen's
+`func_800DCA7C` matches the text against the 10-byte table at 0x80135698
+and sets flags by a jump table: LTSFBLLTS 0x80135760, PLVRZM 0x80135765,
+MSTSRVV 0x80135763, DUMMYHAHA 0x80135760/63/67/61 (all levels, with
+unlimited ammo and invincible), CRSTLCLR 0x8013576A, HVRL 0x8013576B,
+WMNRSMRTR 0x80135773 + 0x8012579A, CDPLT 0x80135770, CNCTHRTM 0x80135771,
+LVFRVR 0x80135772, LTSLTSGNGS 0x8012579A, FRGZ 0x80135775, TDZ 0x80135776.
+A toggle keeps its flags set while on and clears them once when turned off,
+unless another toggle that's on shares the flag (0x8012579A).
+
+**GameShark codes** (Hacks tab, 49 entries, from the owner's list). The
+list mixed in the sequel's codes (0x80117F49 level select, 0x80125AB0-
+0x80125ABC invulnerability, gangs, mini tanks): they land on unrelated data
+here and are left out, as are the codes that set the stock flags
+(duplicates of the toggles). Memory codes (the player records at
+0x802D8xxx, 0x1928 apart; the camera records at 0x802DE620, 0x348 apart)
+are applied every pass of the controller thread's loop (`func_800A8C88`,
+hook at 0x800A8CE8; menus and game). The 17 codes that change an
+instruction are a nop + hook each in battletanx.us.rev0.toml, running the
+original or the code's version by `btx_cheat(n)`; the three in delay slots
+(0x8009FB28, 0x8008E528, 0x800F3330) run before their branch, which in
+each case doesn't read the register they write. Everybody Is Totally
+Invisible turns a `bne` into a non-branch: $s1 is given $v1's value for
+the comparison and put back after the delay slot (the code's `dsub` also
+writes $ra, which the function reloads from the stack before returning).
+Auto win / lose for Queen Lord levels are one picker.
+
+Menu: the sequel's RecompFrontend patches 0011-0013 as
+lib-patches/RecompFrontend/0001-0003 (headings, large pickers, slower
+description updates); the tabs are src/main/cheats_config.cpp.
+
+Checked here: the Cheats, Hacks and Graphics tabs show; Unlimited Ammo on
+(ammo stays at 70 after 7 shots) and Who's Who (every tank green) in
+Ground Zero.
+
 ## 2026-11-04, round 18: Screen Filter and Bloom; RT64 matching limit (issue #1)
 
 **Screen Filter and Bloom** (owner's request, as in the sequel's port,

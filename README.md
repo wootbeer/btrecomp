@@ -18,6 +18,8 @@ included.** You need your own dump of the game to build or play this.
 - High framerate. Set Framerate to Display in the graphics settings to
   match your monitor.
 - Controller Pak saves.
+- Cheats and GameShark codes as toggles in the menu.
+- Optional CRT, Scanlines and LCD screen filters, and bloom.
 - Keyboard and controller support, all remappable. Fire (Z) is on the right
   trigger by default.
 
