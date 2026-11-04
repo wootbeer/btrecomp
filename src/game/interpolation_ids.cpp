@@ -319,8 +319,92 @@ extern "C" void btx_interp_effect_sprite(uint8_t* rdram, uint32_t node) {
     next_ready_id = id;
 }
 
-// Ready-Mtx emitters: the Mtx's address is the object's, unless it's from
-// the per-frame pool.
+// Ready Mtx from the per-frame pool: the tanks. Each tank's hull and turret
+// matrices are built in the pool every frame (logged: the player's tank, two
+// pooled Mtx loaded about 12 times a frame, one per part), so their address
+// says nothing, and on automatic matching their rotation wasn't interpolated:
+// turning, the player's tank snapped once a game frame while the camera
+// turned smoothly, the jitter at the display rate. As the sequel's port gives
+// its tanks their object's ID (btgarecomp round 145), each pooled Mtx is
+// paired here with the one from last frame closest to where that one was
+// heading (its translation, plus its last movement), and keeps its ID, with
+// rotation interpolated. Every load of the same Mtx in a frame is the same
+// object, so gets the same ID; a hull and turret at the same spot are paired
+// in the order they're loaded. New ones get new IDs.
+namespace {
+    struct Pooled {
+        uint32_t mtx;
+        float x, y, z;
+        float vx, vy, vz;
+        bool tracked;
+        uint32_t id;
+        bool claimed;
+    };
+    std::vector<Pooled> pooled_now, pooled_last;
+    uint32_t next_pooled_id = 0;
+
+    // A tank moves about 30 units in a 4-VI frame; a shell (not pooled) 110.
+    constexpr float kPooledMaxMiss = 64.0f;
+
+    // An Mtx element's value: integer halves at 0x00-0x1F, fractions at 0x20-0x3F.
+    float mtx_element(uint8_t* rdram, uint32_t mtx, int index) {
+        const uint32_t shift = (index & 1) ? 0 : 16;
+        const int32_t whole = (int16_t)((uint32_t)MEM_W((index / 2) * 4, kseg0(mtx)) >> shift);
+        const uint32_t fraction = (uint16_t)((uint32_t)MEM_W(0x20 + (index / 2) * 4, kseg0(mtx)) >> shift);
+        return (float)whole + (float)fraction / 65536.0f;
+    }
+
+    void next_pooled_generation() {
+        pooled_last.swap(pooled_now);
+        pooled_now.clear();
+        for (Pooled& p : pooled_last) {
+            p.claimed = false;
+        }
+    }
+
+    uint32_t id_for_pooled_matrix(uint8_t* rdram, uint32_t mtx) {
+        for (const Pooled& p : pooled_now) {
+            if (p.mtx == mtx) {
+                return p.id;
+            }
+        }
+        const float x = mtx_element(rdram, mtx, 12), y = mtx_element(rdram, mtx, 13), z = mtx_element(rdram, mtx, 14);
+        Pooled* best = nullptr;
+        float best_distance = 0.0f;
+        for (Pooled& p : pooled_last) {
+            if (p.claimed) {
+                continue;
+            }
+            const float dx = p.x + p.vx - x, dy = p.y + p.vy - y, dz = p.z + p.vz - z;
+            const float distance = dx * dx + dy * dy + dz * dz;
+            const float room = p.tracked ? kPooledMaxMiss : 2.0f * kPooledMaxMiss;
+            // Strictly closer: of two at the same spot (hull, turret), the first loaded.
+            if ((distance <= room * room) && ((best == nullptr) || (distance < best_distance))) {
+                best = &p;
+                best_distance = distance;
+            }
+        }
+        Pooled entry{ mtx, x, y, z, 0.0f, 0.0f, 0.0f, false, 0, false };
+        if (best != nullptr) {
+            best->claimed = true;
+            entry.id = best->id;
+            entry.vx = x - best->x;
+            entry.vy = y - best->y;
+            entry.vz = z - best->z;
+            entry.tracked = true;
+        }
+        else {
+            // IDs of their own, apart from the sprites' (0x10000000) and below
+            // the addresses used as IDs elsewhere.
+            entry.id = 0x20000000u | (next_pooled_id++ & 0x0FFFFFFFu);
+        }
+        pooled_now.push_back(entry);
+        return entry.id;
+    }
+}
+
+// Ready-Mtx emitters: the Mtx's address is the object's; pooled ones are
+// tracked (above).
 extern "C" void btx_interp_ready_matrix(uint8_t* rdram, uint32_t head_field, uint32_t mtx) {
     if (next_ready_id != 0) {
         // An effect sprite: the game gives each a new random spin every
@@ -331,7 +415,7 @@ extern "C" void btx_interp_ready_matrix(uint8_t* rdram, uint32_t head_field, uin
         return;
     }
     const bool pooled = in_pool(rdram, gfx_state(rdram), mtx);
-    write_group(rdram, list_index(head_field), pooled ? kIdAuto : id_for_ready_matrix(rdram, mtx));
+    write_group(rdram, list_index(head_field), pooled ? id_for_pooled_matrix(rdram, mtx) : id_for_ready_matrix(rdram, mtx));
 }
 
 // The per-view camera matrix: automatic matching from here on.
@@ -354,6 +438,7 @@ extern "C" void btx_interp_frame_base(uint8_t* rdram, recomp_context* ctx) {
     generations[current].ready_uses.clear();
     generations[current].ready_contents.clear();
     next_sprite_generation();
+    next_pooled_generation();
     for (bool& stopped : list_stopped) {
         stopped = false;
     }

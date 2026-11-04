@@ -10,9 +10,10 @@
   Graphics tab, like in Global Assault. Off by default
 
 ### Fixed
-- Jitter when turning (and driving) at high framerate since 0.1.1. The
-  game's frame time now comes from the screen refreshes instead of the PC
-  clock, so it's exactly even
+- Jitter when turning (and driving) at high framerate. Your tank's turning
+  wasn't smoothed between frames; now it is, like in Global Assault. The
+  game's frame time also now comes from the screen refreshes instead of
+  the PC clock, so it's exactly even
 - Slowdown and memory use climbing in busy scenes above the Original
   framerate, like a long 2-player match in the Arena
 

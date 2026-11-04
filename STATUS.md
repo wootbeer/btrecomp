@@ -7,6 +7,32 @@ engine). PROGRESS.md has the short version.
 
 # Log
 
+## 2026-11-04, round 21: tanks' rotation interpolated (turning jitter)
+
+**Report** (owner, round 20 build): still jitter turning, and sometimes
+driving forward. The owner: the sequel's port fixed this.
+
+**Cause.** Logged here, the ready-Mtx loads by kind: about 230 a frame
+get an ID, about 18 stay automatic, and those are pooled Mtx -- two of
+them, at the player's position (the camera's) with a rotation that changes
+every frame, loaded about 12 times (one per part): the player's tank's hull
+and turret, built in the per-frame pool, so their address said nothing. On
+automatic matching our groups don't interpolate rotation (round 11, meant
+for the fireballs' random spin), so turning, the tank snapped once a game
+frame while the camera and the rest turned smoothly. The float-matrix
+emitters are almost unused in game. The sequel's port has the same cause
+behind its round 145: there each tank gets its object's address as ID,
+with rotation interpolated.
+
+**Fix** (`src/game/interpolation_ids.cpp`): pooled Mtx are tracked like
+the effect sprites (round 8): each is paired with the one from last frame
+closest to where that one was heading (its translation plus its last
+movement, within 64 units, twice that for one seen once), keeps its ID,
+and gets the tagged components (rotation interpolated). All loads of one
+Mtx in a frame share its ID; a hull and turret at the same spot pair in
+load order. Logged here: 480 tracked a second while driving, none new;
+short runs of new IDs when tanks come into view.
+
 ## 2026-11-04, round 20: frame step counted from swapped VIs (turning jitter)
 
 **Report** (owner, Windows, Display framerate): a lot of jitter when
