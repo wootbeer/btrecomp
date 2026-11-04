@@ -478,7 +478,7 @@ int main(int argc, char** argv) {
     // created and finalized here, before recomp::start().
     recompui::config::GeneralTabOptions general_tab_options{};
     btx::config::add_general_options(recompui::config::create_general_tab(general_tab_options));
-    recompui::config::create_graphics_tab();
+    btx::config::add_graphics_options(recompui::config::create_graphics_tab());
     recompui::config::create_controls_tab();
     recompui::config::create_sound_tab();
     recompui::config::create_mods_tab();

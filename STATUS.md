@@ -7,6 +7,38 @@ engine). PROGRESS.md has the short version.
 
 # Log
 
+## 2026-11-04, round 18: Screen Filter and Bloom; RT64 matching limit (issue #1)
+
+**Screen Filter and Bloom** (owner's request, as in the sequel's port,
+btgarecomp round 142): `lib-patches/rt64/0008-screen-filters.patch` and
+`0009-bloom.patch`, copied unchanged from the sequel's port (its 0018 and
+0019), and the two options at the end of the Graphics tab
+(`btx::config::add_graphics_options`, src/main/game_config.cpp), off by
+default and passed to `RT64::setScreenFilter` / `setBloom` from the
+options' change callbacks. Checked here: CRT's shadow mask and scanlines on
+the title screen, Bloom High's glow in game.
+
+**Issue #1** (GitHub: 15 GB of memory and a maxed-out CPU after a while in
+a 2-player Arena match, two Xbox controllers). Not reproduced here (the
+sandbox can't drive a second player); the likely cause is the one the
+sequel's port fixed in its round 147: RT64's `GameFrame::matchScene` checks
+every draw against every draw with the same hash in the last frame, so a
+group of look-alike draws costs the product of the two counts, each pair a
+`std::set` insert, a score and a sort. A split screen draws everything
+twice and an Arena match piles up look-alike debris and effects, so the
+work and the per-frame pair sets grow with the square. Fix:
+`lib-patches/rt64/0010-auto-match-group-limit.patch` (the sequel's 0021):
+a group past 4,096 pairs, or one taking the scene past 16,384, isn't
+matched; its draws show at the game's own rate, as at Original.
+
+**Patch step** (`cmake/ApplyLibPatches.cmake`): bloom changes lines the
+screen filter patch adds, so a patch can't be reverse-checked on its own
+any more. Now as in the sequel's port: a stamp in the submodule's Git
+folder records the set (by content); when it changes, or the last patch
+isn't in the tree, the submodule is reset (`checkout`, `clean`) and every
+patch applied again in order. A configure with the same set changes
+nothing.
+
 ## 2026-10-17: 0.1.1; lives counter flicker parked
 
 Release 0.1.1: the game speed fix (round 16) and the black menu sides

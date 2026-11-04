@@ -1,5 +1,15 @@
 # Changelog
 
+## [Unreleased]
+
+### Added
+- Screen Filter (CRT, Scanlines, LCD) and Bloom options at the end of the
+  Graphics tab, like in Global Assault. Off by default
+
+### Fixed
+- Slowdown and memory use climbing in busy scenes above the Original
+  framerate, like a long 2-player match in the Arena
+
 ## [0.1.1 (10-17-2026)]
 
 ### Fixed

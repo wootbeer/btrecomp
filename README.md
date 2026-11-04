@@ -64,6 +64,8 @@ See [CHANGELOG.md](CHANGELOG.md).
   contributors, the launcher and input layer
 - [n64sym](https://github.com/shygoo/n64sym) by shygoo, used to name the
   library functions
+- The CRT screen filter is based on Timothy Lottes' CRT shader and the LCD
+  filter on LCD3x by Gigaherz, both public domain
 - [rabbitizer](https://github.com/Decompollaborate/rabbitizer), the MIPS
   decoder used by the scripts in `tools/`
 
