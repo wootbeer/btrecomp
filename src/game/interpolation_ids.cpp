@@ -423,6 +423,9 @@ extern "C" void btx_interp_auto(uint8_t* rdram, uint32_t head_field) {
     write_group(rdram, list_index(head_field), kIdAuto);
 }
 
+// src/game/marker_interp.cpp
+void btx_markers_new_frame();
+
 // src/game/cutscene_letterbox.cpp
 uint32_t btx_cutscene_letterbox(uint8_t* rdram, uint32_t clear_start, uint32_t head);
 
@@ -439,6 +442,7 @@ extern "C" void btx_interp_frame_base(uint8_t* rdram, recomp_context* ctx) {
     generations[current].ready_contents.clear();
     next_sprite_generation();
     next_pooled_generation();
+    btx_markers_new_frame();
     for (bool& stopped : list_stopped) {
         stopped = false;
     }

@@ -7,6 +7,50 @@ engine). PROGRESS.md has the short version.
 
 # Log
 
+## 2026-11-05, round 22: radar arrows interpolated (from the sequel's port)
+
+Owner's request: port the sequel's radar-arrow fix (btgarecomp branch
+claude/optimistic-cray-t17tfo, rounds 152-154, src/game/marker_interp.cpp).
+
+**This game's arrows.** With radar, `func_80100550` (called from all four
+HUD functions; `func_800F6934` for one player) draws a 5 x 5 arrow over
+each other tank at its projected position (`func_8009453C`), writing the
+rectangle itself into the HUD's list (head 0x8037A174): `G_TEXRECT` and this
+microcode's RDPHALF_1/2 (0xB4/0xB3), tile 0, s,t 0, steps 0x0400 (1-cycle),
+each team's colour as `G_SETPRIMCOLOR` before its arrows. It doesn't clamp:
+an arrow left of the screen has its x wrapped in the 12-bit field (the
+"1003" in the HUD logs), which sign-extends back. Found by logging the HUD
+head after each of `func_800F6934`'s calls against the arrows' addresses.
+Before this, the widescreen HUD pass (round 4) grouped arrows like any HUD
+element and anchored any right of x 180 (the wrapped ones too) or left of
+140 to a screen edge.
+
+**Fix** (`src/game/marker_interp.cpp`, hooks at `func_80100550`'s entry
+and 0x801009B8): the sequel's approach -- each arrow rectangle becomes a
+`G_DL` call and two `G_NOOP`s, the called list drawing the same texels as
+two triangles under an orthographic projection with an interpolated,
+ID-tagged modelview, IDs kept by pairing with last frame's arrow of the
+same colour nearest its predicted position (32 px). In F3DEX 1.21
+encodings (from RT64's F3D/F3DEX parsers: G_MTX 0x01 with F3D's matrix
+flags, viewport by G_MOVEMEM 0x80, G_VTX 0x04 with n at bits 10-15,
+G_TRI2 0xB1 with indices x2, G_TEXTURE 0xBB, geometry mode 0xB6/0xB7,
+G_SETOTHERMODE_H 0xBA, G_POPMTX 0xBD, G_ENDDL 0xB8). Converted arrows
+aren't rectangles to the widescreen pass, so they aren't anchored; each list
+widens the scissor to the whole window. Lists in 8 rotating 16 KB slots
+from 0x807E0000: the game uses only the first 4 MB (checked: the upper half
+stays zero through boot, menus and a mission).
+
+Differences found here: the sequel's half-texel start offset put the
+arrow's texels half a texel off in this game; without it the quad matches
+the rectangle pixel for pixel (sandbox, 3x resolution, A/B against the
+unconverted rectangle). G_TP_PERSP and point filtering as in the sequel.
+
+Checked here (radar forced on with the P1 radar hack): every arrow
+converts (1,250 of 1,250); same shape, colour and position as the
+rectangle; an arrow moved past the 4:3 edge (test shift) draws whole in the
+side area. The sandbox can't render above the game's rate, so the smoothing
+itself is for the owner to check.
+
 ## 2026-11-04, round 21: tanks' rotation interpolated (turning jitter)
 
 **Report** (owner, round 20 build): still jitter turning, and sometimes

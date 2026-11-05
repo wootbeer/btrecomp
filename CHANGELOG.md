@@ -10,6 +10,9 @@
   Graphics tab, like in Global Assault. Off by default
 
 ### Fixed
+- Radar arrows over the other tanks stuttering at high framerate. They now
+  move as smoothly as the tanks, like in Global Assault, and stay on their
+  tanks in widescreen
 - Jitter when turning (and driving) at high framerate. Your tank's turning
   wasn't smoothed between frames; now it is, like in Global Assault. The
   game's frame time also now comes from the screen refreshes instead of

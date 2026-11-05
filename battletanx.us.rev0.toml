@@ -244,6 +244,24 @@ text = """
     btx_interp_frame_base(rdram, ctx);
 """
 
+# --- Radar arrows ----------------------------------------------------------
+# src/game/marker_interp.cpp: func_80100550 draws the radar arrows as
+# texture rectangles in the HUD's list; when it's done they become calls to
+# interpolated quads. Its entry, and after its last command.
+[[patches.hook]]
+func = "func_80100550"
+before_vram = 0x80100550
+text = """
+    { extern void btx_markers_begin(uint8_t *rdram); btx_markers_begin(rdram); }
+"""
+
+[[patches.hook]]
+func = "func_80100550"
+before_vram = 0x801009B8
+text = """
+    { extern void btx_markers_end(uint8_t *rdram); btx_markers_end(rdram); }
+"""
+
 # --- Cheats -----------------------------------------------------------------
 # The Cheats and Hacks tabs (src/game/cheats.cpp). btx_cheats_frame applies the
 # stock codes' flags and the GameShark codes that write memory, once a pass of
