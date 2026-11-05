@@ -1,6 +1,6 @@
 # Changelog
 
-## [Unreleased]
+## [0.1.2 (11-05-2026)]
 
 ### Added
 - Cheats tab: the game's own codes as on/off toggles, no typing needed

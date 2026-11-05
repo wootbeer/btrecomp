@@ -7,6 +7,20 @@ engine). PROGRESS.md has the short version.
 
 # Log
 
+## 2026-11-05: 0.1.2
+
+Release 0.1.2: rounds 18-22 (Screen Filter and Bloom, the RT64 matching
+limit for issue #1, the Cheats and Hacks tabs, the frame step counted from
+swapped VIs, the tanks' rotation interpolated, the radar arrows
+interpolated). Owner's checks: speed, cheats (Campaign Gangs from the
+toggle), turning, enemy tanks, the arrows (their position matches an
+emulator: the game puts each arrow's corner 50 units above its tank).
+Issue #1's fix is untested by its reporter.
+
+Open: enemy turrets turning on their own may still snap (some parts stay
+on automatic matching); the Goliath spawn report; the lives counter
+flicker (not reproduced).
+
 ## 2026-11-05, round 22: radar arrows interpolated (from the sequel's port)
 
 Owner's request: port the sequel's radar-arrow fix (btgarecomp branch
