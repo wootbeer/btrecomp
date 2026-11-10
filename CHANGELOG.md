@@ -1,5 +1,11 @@
 # Changelog
 
+## [Unreleased]
+
+### Fixed
+- The game kept one CPU core busy at all times, even on the title screen,
+  while waiting for the next frame. Better battery life on the Steam Deck
+
 ## [0.1.2 (11-05-2026)]
 
 ### Added

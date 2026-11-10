@@ -7,6 +7,32 @@ engine). PROGRESS.md has the short version.
 
 # Log
 
+## 2026-11-10, round 23: waiting loops no longer burn a core
+
+Owner's request, from the sequel's port (its round 188): check whether the
+game threads spin while they wait.
+
+**Measured** (sandbox, `top -H`): "Game 2" at ~95% of a core on the title
+screen, all the time. gdb samples: `func_8007D850` (waits for the graphics
+state's 0xD4 flag) and `func_8007E248` (waits for a free framebuffer), both
+in their loops calling `btx_yield_via_priority_drop`, which drains the
+external messages and hands off with a priority drop, and returns at once.
+
+**Fix** (`src/main/scheduler_workaround.cpp`): once a thread has been
+calling it back to back (each call within 2 ms of the last) for 2 ms, each
+call first sleeps until the next external message arrives
+(`ultramodern::wait_for_external_message_timed`, at most 1 ms), then drains
+and hands off as before. Not from the second call, as first planned: the
+hook also runs once per word in `func_80079064`'s copy loop (0x8007907C),
+where a sleep per call would cost a millisecond a word; a wait still reacts
+at once for its first 2 ms.
+
+**After:** Game 2 at 4% on the title screen and 5% in a mission (the other
+game threads under 1%, as before). Checked: boot, title, menus, the story
+screen, then Ground Zero with driving, a kill and taking damage, as before.
+(An "Insert Rumble Paks Now" prompt in one test run came from the sandbox's
+deleted test save; the build before this change showed it too.)
+
 ## 2026-11-05: 0.1.2
 
 Release 0.1.2: rounds 18-22 (Screen Filter and Bloom, the RT64 matching
