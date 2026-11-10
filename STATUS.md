@@ -7,6 +7,32 @@ engine). PROGRESS.md has the short version.
 
 # Log
 
+## 2026-11-10, round 24: mouse support (from the sequel's port)
+
+Owner's request: the mouse and keyboard support of the sequel's port
+(btgarecomp rounds 163-164).
+
+- `lib-patches/RecompFrontend/0004-mouse-bindings-and-capture.patch`, the
+  sequel's 0015 unchanged (it applies on top of our 0001-0003, its
+  0011-0013): mouse buttons, the side buttons and the wheel's notches
+  bindable like keys; the mouse captured while the game runs with no menu
+  open; a running total of the mouse's motion.
+- `src/main/mouse_stick.cpp` (the sequel's, renamed): Mouse Stick on the
+  General tab, Off (default) / Turn / Full with a 5-300% sensitivity;
+  player 1's stick follows the mouse's speed over the last 80 ms (750
+  pixels a second is full at 100%). It's the input callback, wrapping
+  recompinput's `get_n64_input`.
+- Keyboard defaults gain the left mouse button on Z (main gun) and the
+  right one on R, next to the frontend's Q and R (`src/main/main.cpp`).
+  Saved bindings are kept, so they apply to a new setup or Reset to
+  Defaults.
+
+Checked here: five left clicks in Ground Zero fired five shots (ammo 70 to
+65); with Mouse Stick on Turn, moving the mouse right turned the tank right
+and moving it left turned it back. The Controls tab's binding prompt and
+the wheel weren't clicked through here; the smoothness of Mouse Stick needs
+a check on a PC (the sandbox renders too slowly to judge it).
+
 ## 2026-11-10, round 23: waiting loops no longer burn a core
 
 Owner's request, from the sequel's port (its round 188): check whether the

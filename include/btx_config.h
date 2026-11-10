@@ -29,6 +29,16 @@ namespace btx::config {
     bool get_local_multiplayer();
 }
 
+// General tab: Mouse Stick (src/main/mouse_stick.cpp).
+namespace btx {
+    // Mode 0 Off, 1 Turn, 2 Full; sensitivity in percent.
+    void set_mouse_stick(int mode, double percent);
+    // Lets the mouse be captured while Mouse Stick is on. Call once at startup.
+    void init_mouse_stick();
+    // The input callback: recompinput's, plus the mouse for player 1.
+    bool get_n64_input_with_mouse(int player_index, uint16_t* buttons_out, float* x_out, float* y_out);
+}
+
 // Widescreen (src/game/widescreen.cpp): how much wider than 4:3 RT64 is
 // drawing full-width 3D views -- the window aspect / (4/3) in Expand mode,
 // 1 otherwise. Updated by the frontend every frame.

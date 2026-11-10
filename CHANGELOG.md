@@ -2,6 +2,13 @@
 
 ## [Unreleased]
 
+### Added
+- Mouse support, like in Global Assault. Mouse buttons, the side buttons
+  and the scroll wheel can be bound on the Controls tab. Left click fires
+  the main gun and right click is R by default
+- Mouse Stick on the General tab: turn the tank with the mouse (Turn), or
+  drive with it too (Full), with a sensitivity slider. Off by default
+
 ### Fixed
 - The game kept one CPU core busy at all times, even on the title screen,
   while waiting for the next frame. Better battery life on the Steam Deck

@@ -1,5 +1,5 @@
 // Game-specific options on the General tab: which pak each controller holds,
-// and local multiplayer; and the screen filter and bloom on the Graphics tab.
+// local multiplayer and Mouse Stick; and the screen filter and bloom on the Graphics tab.
 // See include/btx_config.h.
 #include "btx_config.h"
 
@@ -58,6 +58,40 @@ void btx::config::add_general_options(recomp::config::Config& general) {
         "<b>Assign players</b> to choose each player's controller or keyboard.",
         false
     );
+
+    general.add_enum_option(
+        "mouse_stick",
+        "Mouse Stick",
+        "Moves player 1's analog stick with the mouse. <b>Turn</b> uses left-right motion only, to turn "
+        "while the keys or a controller drive; <b>Full</b> also drives with up-down motion. The mouse is "
+        "held in the window while you play; open the menu to free it."
+        "<br/><br/>"
+        "Mouse buttons, the side buttons and the scroll wheel can be bound on the Controls tab.",
+        { {0u, "Off", "Off"}, {1u, "Turn", "Turn"}, {2u, "Full", "Full"} },
+        0u
+    );
+    general.add_number_option(
+        "mouse_stick_sensitivity",
+        "Mouse Stick Sensitivity",
+        "How far the stick moves for the mouse's motion.",
+        5, 300, 1, 0, true, 100
+    );
+    general.add_option_disable_dependency("mouse_stick_sensitivity", "mouse_stick", 0u);
+
+    // Also called when the saved settings load.
+    static int mouse_mode = 0;
+    static double mouse_sensitivity = 100.0;
+    general.add_option_change_callback("mouse_stick",
+        [](recomp::config::ConfigValueVariant value, recomp::config::ConfigValueVariant, recomp::config::OptionChangeContext) {
+            mouse_mode = (int)std::get<uint32_t>(value);
+            btx::set_mouse_stick(mouse_mode, mouse_sensitivity);
+        });
+    general.add_option_change_callback("mouse_stick_sensitivity",
+        [](recomp::config::ConfigValueVariant value, recomp::config::ConfigValueVariant, recomp::config::OptionChangeContext) {
+            mouse_sensitivity = std::get<double>(value);
+            btx::set_mouse_stick(mouse_mode, mouse_sensitivity);
+        });
+    btx::init_mouse_stick();
 }
 
 void btx::config::add_graphics_options(recomp::config::Config& graphics) {

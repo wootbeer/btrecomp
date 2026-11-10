@@ -20,8 +20,9 @@ included.** You need your own dump of the game to build or play this.
 - Controller Pak saves.
 - Cheats and GameShark codes as toggles in the menu.
 - Optional CRT, Scanlines and LCD screen filters, and bloom.
-- Keyboard and controller support, all remappable. Fire (Z) is on the right
-  trigger by default.
+- Keyboard, mouse and controller support, all remappable. Fire (Z) is on
+  the right trigger and left mouse button by default. Mouse Stick (General
+  tab) turns the tank with the mouse.
 
 ## Game Files
 You need your own data file, BattleTanx (USA).

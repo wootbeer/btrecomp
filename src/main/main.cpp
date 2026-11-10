@@ -470,6 +470,13 @@ int main(int argc, char** argv) {
     recompinput::set_default_mapping_for_controller(recompinput::GameInput::R,
         { recompinput::InputField::controller_analog(SDL_CONTROLLER_AXIS_TRIGGERLEFT, true) });
 
+    // Keyboard defaults: the frontend's keys, plus the main gun (Z) on the left
+    // mouse button and R on the right one, as in the sequel's port.
+    recompinput::set_default_mapping_for_keyboard(recompinput::GameInput::Z,
+        { recompinput::InputField::keyboard(SDL_SCANCODE_Q), recompinput::InputField{ recompinput::InputType::Mouse, SDL_BUTTON_LEFT } });
+    recompinput::set_default_mapping_for_keyboard(recompinput::GameInput::R,
+        { recompinput::InputField::keyboard(SDL_SCANCODE_R), recompinput::InputField{ recompinput::InputType::Mouse, SDL_BUTTON_RIGHT } });
+
     // recompui::config::init_modal() (called from UIState::create_menus(),
     // itself called from inside RT64::Application::setup() on the gfx
     // thread) hard-requires recompui::config::finalize() to have already
@@ -517,7 +524,7 @@ int main(int argc, char** argv) {
 
     ultramodern::input::callbacks_t input_callbacks{
         .poll_input = recompinput::poll_inputs,
-        .get_input = recompinput::profiles::get_n64_input,
+        .get_input = btx::get_n64_input_with_mouse,
         .set_rumble = recompinput::set_rumble,
         .get_connected_device_info = get_connected_device_info,
     };
