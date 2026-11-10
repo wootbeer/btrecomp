@@ -15,6 +15,9 @@
 // alternated between a full stick and a partial or empty one, and the tank
 // wobbled (the sequel's round 164).
 //
+// With Mouse Stick off, the cursor is only hidden over the window while
+// playing (it kept the menu's pointing hand otherwise).
+//
 // Mouse buttons, the side buttons and the wheel's notches are bound like keys
 // on the Controls tab (the same patch, from snprecomp's 0008). By default the
 // left button fires the main gun (Z) and the right one is R (src/main/main.cpp).
@@ -45,8 +48,11 @@ namespace {
     };
     std::deque<Sample> samples;
 
+    // With Mouse Stick off the cursor is still hidden over the window while
+    // playing (free to move, and clicks still reach the game): left visible it
+    // kept the menu's pointing-hand shape, as if the game weren't taking input.
     recompinput::GameMouse game_mouse() {
-        return mode.load() != 0 ? recompinput::GameMouse::Captured : recompinput::GameMouse::Default;
+        return mode.load() != 0 ? recompinput::GameMouse::Captured : recompinput::GameMouse::Hidden;
     }
 }
 

@@ -8,6 +8,8 @@
   the main gun and right click is R by default
 - Mouse Stick on the General tab: turn the tank with the mouse (Turn), or
   drive with it too (Full), with a sensitivity slider. Off by default
+- The mouse cursor is hidden over the game while you play (it shows again
+  in the menu)
 
 ### Fixed
 - The game kept one CPU core busy at all times, even on the title screen,

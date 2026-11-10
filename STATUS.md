@@ -7,6 +7,21 @@ engine). PROGRESS.md has the short version.
 
 # Log
 
+## 2026-11-10, round 24b: cursor hidden while playing
+
+**Report** (owner, Windows): the keyboard works, but the cursor stays a
+pointing hand over the game, so it's unclear whether the game has the
+mouse. With Mouse Stick off, our callback left the mouse as the frontend
+had it (`GameMouse::Default`), and the cursor kept the shape the menu
+gave it. The sequel's port has the same code (no cursor handling of its
+own) and the owner doesn't see it there; no code difference found.
+
+**Fix** (`src/main/mouse_stick.cpp`): with Mouse Stick off, `Hidden`
+instead of `Default`: the cursor is hidden over the window while the game
+runs with no menu open, still free to move, and clicks still reach the
+game (sandbox: three left clicks, ammo 70 to 67). With it on, `Captured`
+as before. The menu shows the cursor as usual.
+
 ## 2026-11-10, round 24: mouse support (from the sequel's port)
 
 Owner's request: the mouse and keyboard support of the sequel's port
