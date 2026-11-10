@@ -1,6 +1,6 @@
 # Changelog
 
-## [Unreleased]
+## [0.1.3 (11-10-2026)]
 
 ### Added
 - Mouse support, like in Global Assault. Mouse buttons, the side buttons

@@ -7,6 +7,13 @@ engine). PROGRESS.md has the short version.
 
 # Log
 
+## 2026-11-10: 0.1.3
+
+Release 0.1.3: rounds 23-25 (waiting loops no longer burn a core, mouse
+support with Mouse Stick and its Turret mode, the cursor hidden while
+playing). Owner's checks: keyboard and mouse, the hidden cursor, Turret
+mode. Issue #1's fix (0.1.2) confirmed by its reporter so far.
+
 ## 2026-11-10, round 25: Mouse Stick Turret mode
 
 Owner: in the sequel's port the mouse can turn the turret on its own (a
