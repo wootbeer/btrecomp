@@ -112,10 +112,13 @@ cmake --build build --target BattleTanxRecompiled
 **Linux:**
 
 ```bash
-cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Release
+CC=clang CXX=clang++ cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Release
 cmake --build build --target BattleTanxRecompiled -j$(nproc)
 ./build/BattleTanxRecompiled
 ```
+
+Use clang: with gcc the recompiled functions aren't weak symbols, and the
+patched ones collide with their recompiled copies when linking.
 
 Run it from the repo root: the game loads `assets/` relative to the working
 directory. Use `-DCMAKE_BUILD_TYPE=Debug` for a build a debugger can step

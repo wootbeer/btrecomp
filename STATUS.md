@@ -7,6 +7,31 @@ engine). PROGRESS.md has the short version.
 
 # Log
 
+## 2026-11-10, round 25: Mouse Stick Turret mode
+
+Owner: in the sequel's port the mouse can turn the turret on its own (a
+game feature there). This game has no free turret except through the
+GameShark code "P1 Tank Turret Always On" (802DE7FB 0011, 802DE7FF 0002,
+round 19), which turns it with C-Left and C-Right. Asked for: try it, keep
+it simple, the option can just turn the hack on.
+
+**Turret** (Mouse Stick's fourth choice, `src/main/mouse_stick.cpp`):
+left-right motion, measured as for Turn, holds C-Right or C-Left once the
+stick would be past 0.15; the stick itself is left to the keys or a
+controller. The buttons are on/off, so the turret turns at the game's speed
+while the mouse moves. While it's chosen, `btx_cheats_frame` applies the
+turret hack as if its Hacks toggle were on (`btx::mouse_turret_active`).
+
+Checked here: in Ground Zero with the Hacks toggle off, mouse right turned
+the turret (and the camera, which follows it) right while the hull kept
+its heading (the minimap arrow unchanged), and mouse left turned it back
+and past centre.
+
+The container had been reset: rebuilt from a fresh clone (submodules,
+N64Recomp, the ROM uploaded by the owner). On Linux the build needs clang
+(`CC=clang CXX=clang++`): with gcc, N64Recomp's RECOMP_FUNC isn't weak and
+the patched `func_80079530` collides with its recompiled copy at link time.
+
 ## 2026-11-10, round 24b: cursor hidden while playing
 
 **Report** (owner, Windows): the keyboard works, but the cursor stays a

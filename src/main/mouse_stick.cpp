@@ -4,7 +4,9 @@
 //
 // Turn uses the mouse's left-right motion only, so the keys or a controller
 // still drive forward and back. Full also uses its up-down motion (up is
-// forward). While the game runs with no menu open the mouse is captured in the
+// forward). Turret turns the turret instead: this game has no free turret
+// except through the GameShark code "P1 Tank Turret Always On", which this
+// mode switches on, and which turns the turret with C-Left and C-Right. While the game runs with no menu open the mouse is captured in the
 // window (lib-patches/RecompFrontend/0004, from snprecomp's 0001). The stick
 // follows the mouse's speed, so a faster mouse turns harder: at 100%
 // sensitivity, 750 pixels a second is the stick all the way over.
@@ -34,10 +36,13 @@
 #include "btx_config.h"
 
 namespace {
-    std::atomic<int> mode{ 0 }; // 0 Off, 1 Turn, 2 Full
+    std::atomic<int> mode{ 0 }; // 0 Off, 1 Turn, 2 Full, 3 Turret
     std::atomic<float> sensitivity{ 1.0f };
 
     constexpr double kPixelsPerSecondForFullStick = 750.0;
+    // Turret: how far the stick would move before the mouse presses a C button.
+    constexpr float kTurretThreshold = 0.15f;
+    constexpr uint16_t kCRight = 0x0001, kCLeft = 0x0002; // N64 button bits
     constexpr std::chrono::milliseconds kWindow{ 80 };
 
     // The mouse's total motion at each controller read, newest last (the
@@ -59,6 +64,10 @@ namespace {
 void btx::set_mouse_stick(int new_mode, double percent) {
     mode.store(new_mode);
     sensitivity.store((float)(percent / 100.0));
+}
+
+bool btx::mouse_turret_active() {
+    return mode.load() == 3;
 }
 
 void btx::init_mouse_stick() {
@@ -89,7 +98,21 @@ bool btx::get_n64_input_with_mouse(int player_index, uint16_t* buttons_out, floa
     // window's worth counts.
     const double span = std::max(seconds, std::chrono::duration<double>(kWindow).count());
     const double scale = sensitivity.load() / kPixelsPerSecondForFullStick / span;
-    *x_out = std::clamp(*x_out + (float)((total_x - start.x) * scale), -1.0f, 1.0f);
+    const float mouse_x = (float)((total_x - start.x) * scale);
+    if (cur_mode == 3) {
+        // Turret: left-right motion holds C-Left or C-Right, which turn the
+        // turret while the turret hack is on (src/game/cheats.cpp turns it on
+        // in this mode). The buttons are on or off, so the turret turns at the
+        // game's own speed while the mouse moves.
+        if (mouse_x > kTurretThreshold) {
+            *buttons_out |= kCRight;
+        }
+        else if (mouse_x < -kTurretThreshold) {
+            *buttons_out |= kCLeft;
+        }
+        return ret;
+    }
+    *x_out = std::clamp(*x_out + mouse_x, -1.0f, 1.0f);
     if (cur_mode == 2) {
         *y_out = std::clamp(*y_out - (float)((total_y - start.y) * scale), -1.0f, 1.0f);
     }

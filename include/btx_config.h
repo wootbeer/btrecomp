@@ -31,8 +31,10 @@ namespace btx::config {
 
 // General tab: Mouse Stick (src/main/mouse_stick.cpp).
 namespace btx {
-    // Mode 0 Off, 1 Turn, 2 Full; sensitivity in percent.
+    // Mode 0 Off, 1 Turn, 2 Full, 3 Turret; sensitivity in percent.
     void set_mouse_stick(int mode, double percent);
+    // Turret mode: the turret hack is on and the mouse turns the turret.
+    bool mouse_turret_active();
     // Lets the mouse be captured while Mouse Stick is on. Call once at startup.
     void init_mouse_stick();
     // The input callback: recompinput's, plus the mouse for player 1.

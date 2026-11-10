@@ -22,6 +22,7 @@
 #include <vector>
 
 #include "btx_cheats.h"
+#include "btx_config.h"
 #include "recomp.h"
 
 namespace {
@@ -287,6 +288,10 @@ extern "C" void btx_cheats_frame(uint8_t* rdram) {
     for (size_t i = 0; i < entries().size(); i++) {
         const Entry& e = entries()[i];
         uint32_t value = wanted()[i].load();
+        // Mouse Stick's Turret mode needs the turret hack (src/main/mouse_stick.cpp).
+        if (value == 0 && e.cheat.id == "gs_p1_turret" && btx::mouse_turret_active()) {
+            value = 1;
+        }
         if (value == 0) {
             continue;
         }

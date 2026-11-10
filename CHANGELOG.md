@@ -6,8 +6,10 @@
 - Mouse support, like in Global Assault. Mouse buttons, the side buttons
   and the scroll wheel can be bound on the Controls tab. Left click fires
   the main gun and right click is R by default
-- Mouse Stick on the General tab: turn the tank with the mouse (Turn), or
-  drive with it too (Full), with a sensitivity slider. Off by default
+- Mouse Stick on the General tab: turn the tank with the mouse (Turn),
+  drive with it too (Full), or turn the turret on its own (Turret), with a
+  sensitivity slider. Off by default. Turret turns on the GameShark code
+  that frees the turret by itself
 - The mouse cursor is hidden over the game while you play (it shows again
   in the menu)
 

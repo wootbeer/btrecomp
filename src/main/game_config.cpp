@@ -63,11 +63,13 @@ void btx::config::add_general_options(recomp::config::Config& general) {
         "mouse_stick",
         "Mouse Stick",
         "Moves player 1's analog stick with the mouse. <b>Turn</b> uses left-right motion only, to turn "
-        "while the keys or a controller drive; <b>Full</b> also drives with up-down motion. The mouse is "
-        "held in the window while you play; open the menu to free it."
+        "while the keys or a controller drive; <b>Full</b> also drives with up-down motion. "
+        "<b>Turret</b> turns the turret with left-right motion instead, and turns on the GameShark code "
+        "that lets the turret turn on its own. The mouse is held in the window while you play; open the "
+        "menu to free it."
         "<br/><br/>"
         "Mouse buttons, the side buttons and the scroll wheel can be bound on the Controls tab.",
-        { {0u, "Off", "Off"}, {1u, "Turn", "Turn"}, {2u, "Full", "Full"} },
+        { {0u, "Off", "Off"}, {1u, "Turn", "Turn"}, {2u, "Full", "Full"}, {3u, "Turret", "Turret"} },
         0u
     );
     general.add_number_option(
