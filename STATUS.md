@@ -7,6 +7,38 @@ engine). PROGRESS.md has the short version.
 
 # Log
 
+## 2026-11-12, round 29: Fog and Draw Distance options (experimental)
+
+Owner's request: the sequel's Fog and Draw Distance options (btgarecomp
+rounds 158-161), marked experimental. `src/game/view_distance.cpp`, at the
+end of the Graphics tab:
+
+- **Fog** On / Off. `func_8007DC5C` sets the fog once a frame with the
+  game's only `G_MW_FOG`, 0x64009D00 = `gSPFogPosition(995, 1000)` (the
+  sequel's word). Off stores 0 instead (hook before 0x8007E0BC).
+- **Draw Distance** Original / Far (x3) / Very Far (x6) / Map Edge (32,000).
+  `func_80081AD0` sets the distance at 0x80125858 (the far plane, so the fog
+  moves with it), its copy at 0x801C9178 and its square at 0x801C9174 at
+  each level start from the level's maximum (`func_80086AE8`, cut to 16
+  bits); the hook scales it before the square (0x80082148). Once a second
+  `func_800862E8` adds 50 only while it's under the level's maximum, and the
+  step down is stubbed (round 12), so a larger value stays. The cap: the
+  square is a 32-bit int (46,340 at most) and the level's value a 16-bit
+  one. There are no camera scripts storing it here, unlike the sequel.
+- **Room in the draw queue.** At Map Edge in the first campaign level,
+  `func_80080728`'s 0x800 draw items (16 bytes at 0x801B6C20, count
+  0x801B6C10) filled up and over 1,000 draws a second were dropped. When the
+  distance is above Original, latched once a frame at the queue reset
+  (`func_800805DC`), the items go to 0x80740000 with room for 0x2000 (hooks
+  before 0x80080890 and 0x800808BC). At Original the game keeps its own
+  limit. The other limits had room: 87 of 300 mesh entries, about 0x1980 of
+  the 0xC000-byte matrix pool, and about 0xE500 bytes of the main display
+  list's 0x20000 (round 26).
+
+Checked here: Arena and the first campaign level at Map Edge with the fog
+off (distance 32,000, the whole map drawn, peak 2,343 items, nothing
+dropped); default settings unchanged.
+
 ## 2026-11-12, round 28: distant scenery flickering at the fog line
 
 Owner: round 27 made the edges better. New clip (Arena, driving the road):

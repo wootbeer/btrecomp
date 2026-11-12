@@ -2,6 +2,11 @@
 
 ## [Unreleased]
 
+### Added
+- Fog and Draw Distance options at the end of the Graphics tab, like in
+  Global Assault. Experimental. Fog can be turned off, and Draw Distance
+  can be Far, Very Far or Map Edge. Both are off by default
+
 ### Fixed
 - 4-player matches froze soon after the round started, with memory use
   climbing into the gigabytes (issue #1). The game ran out of room for

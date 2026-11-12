@@ -21,7 +21,8 @@ namespace btx::config {
     void add_general_options(recomp::config::Config& general);
 
     // Screen Filter and Bloom at the end of the Graphics tab, passed straight
-    // to RT64 (lib-patches/rt64/0008, 0009). Call between
+    // to RT64 (lib-patches/rt64/0008, 0009), then Fog and Draw Distance
+    // (src/game/view_distance.cpp). Call between
     // recompui::config::create_graphics_tab() and recompui::config::finalize().
     void add_graphics_options(recomp::config::Config& graphics);
 
@@ -39,6 +40,13 @@ namespace btx {
     void init_mouse_stick();
     // The input callback: recompinput's, plus the mouse for player 1.
     bool get_n64_input_with_mouse(int player_index, uint16_t* buttons_out, float* x_out, float* y_out);
+}
+
+// Graphics tab options read by the game's hooks (src/game/view_distance.cpp).
+namespace btx {
+    void set_fog_enabled(bool enabled);
+    // 0 Original, 1 Far, 2 Very Far, 3 Map Edge.
+    void set_draw_distance(int level);
 }
 
 // Widescreen (src/game/widescreen.cpp): how much wider than 4:3 RT64 is

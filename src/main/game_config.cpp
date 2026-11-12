@@ -1,5 +1,5 @@
 // Game-specific options on the General tab: which pak each controller holds,
-// local multiplayer and Mouse Stick; and the screen filter and bloom on the Graphics tab.
+// local multiplayer and Mouse Stick; and the screen filter, bloom, fog and draw distance on the Graphics tab.
 // See include/btx_config.h.
 #include "btx_config.h"
 
@@ -124,6 +124,23 @@ void btx::config::add_graphics_options(recomp::config::Config& graphics) {
         bloom_options,
         RT64::Bloom::Off
     );
+    graphics.add_enum_option(
+        "fog",
+        "Fog",
+        "<b>Off</b> clears the haze over distant scenery. Experimental. The game only draws so far, so with the "
+        "fog off, things at that edge pop in instead of fading in. Pair it with a <b>Far</b> draw distance.",
+        { {1u, "On", "On"}, {0u, "Off", "Off"} },
+        1u
+    );
+    graphics.add_enum_option(
+        "draw_distance",
+        "Draw Distance",
+        "Experimental. <b>Far</b> draws scenery and tanks about three times as far away, <b>Very Far</b> six times, "
+        "and <b>Map Edge</b> as far as the game can. The fog moves out with it. Farther settings draw more each "
+        "frame, so they're heavier on slower PCs. Takes effect when a level starts.",
+        { {0u, "Original", "Original"}, {1u, "Far", "Far"}, {2u, "VeryFar", "Very Far"}, {3u, "MapEdge", "Map Edge"} },
+        0u
+    );
 
     // Also called when the saved settings load.
     graphics.add_option_change_callback("screen_filter",
@@ -133,6 +150,14 @@ void btx::config::add_graphics_options(recomp::config::Config& graphics) {
     graphics.add_option_change_callback("bloom",
         [](recomp::config::ConfigValueVariant value, recomp::config::ConfigValueVariant, recomp::config::OptionChangeContext) {
             RT64::setBloom(static_cast<RT64::Bloom>(std::get<uint32_t>(value)));
+        });
+    graphics.add_option_change_callback("fog",
+        [](recomp::config::ConfigValueVariant value, recomp::config::ConfigValueVariant, recomp::config::OptionChangeContext) {
+            btx::set_fog_enabled(std::get<uint32_t>(value) != 0);
+        });
+    graphics.add_option_change_callback("draw_distance",
+        [](recomp::config::ConfigValueVariant value, recomp::config::ConfigValueVariant, recomp::config::OptionChangeContext) {
+            btx::set_draw_distance(static_cast<int>(std::get<uint32_t>(value)));
         });
 }
 

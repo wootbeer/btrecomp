@@ -254,6 +254,44 @@ text = """
     { extern void btx_relocate_main_lists(uint8_t *rdram); btx_relocate_main_lists(rdram); }
 """
 
+# Fog and Draw Distance options on the Graphics tab (src/game/view_distance.cpp):
+# the frame's fog word, and the level-start draw distance.
+[[patches.hook]]
+func = "func_8007DC5C"
+before_vram = 0x8007E0BC
+text = """
+    { extern void btx_fog_word(uint8_t *rdram, recomp_context *ctx); btx_fog_word(rdram, ctx); }
+"""
+
+[[patches.hook]]
+func = "func_80081AD0"
+before_vram = 0x80082148
+text = """
+    { extern void btx_level_draw_distance(uint8_t *rdram, recomp_context *ctx); btx_level_draw_distance(rdram, ctx); }
+"""
+
+# ...and room in the draw queue for the farther distances.
+[[patches.hook]]
+func = "func_800805DC"
+before_vram = 0x800805DC
+text = """
+    { extern void btx_draw_queue_frame(uint8_t *rdram, recomp_context *ctx); btx_draw_queue_frame(rdram, ctx); }
+"""
+
+[[patches.hook]]
+func = "func_80080728"
+before_vram = 0x80080890
+text = """
+    { extern void btx_draw_item_limit(uint8_t *rdram, recomp_context *ctx); btx_draw_item_limit(rdram, ctx); }
+"""
+
+[[patches.hook]]
+func = "func_80080728"
+before_vram = 0x800808BC
+text = """
+    { extern void btx_draw_item_pool(uint8_t *rdram, recomp_context *ctx); btx_draw_item_pool(rdram, ctx); }
+"""
+
 # --- Radar arrows ----------------------------------------------------------
 # src/game/marker_interp.cpp: func_80100550 draws the radar arrows as
 # texture rectangles in the HUD's list; when it's done they become calls to
