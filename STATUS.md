@@ -7,6 +7,37 @@ engine). PROGRESS.md has the short version.
 
 # Log
 
+## 2026-11-12, round 26: 4-player matches froze (issue #1 again)
+
+Issue #1's reporter came back: with 4 Xbox controllers the game froze
+almost as soon as a multiplayer round started, with memory past 10 GB and
+heavy CPU use. Fewer controllers were fine.
+
+Reproduced here with 4 virtual SDL pads (a local test harness, not
+committed) driving the menus into a 4-player Arena match: the game hung
+55-90 s in, the Vulkan backend failing to create a 0 x 0 texture and then
+crashing in its barrier code; on D3D12 the same runaway shows as the
+memory growth.
+
+**Cause.** `func_8007D4E8` gives each of the two frame slots (+0x90 +
+0x18 * slot) a main display list at +0x4: 0x8000 bytes from 0x8030AFF0 +
+slot * 0x8000. The second slot's list ends where the frames' start lists
+begin (0x8031AFF0) and the game never checks the main list's length. Our
+interpolation tags (16 bytes per tagged object, round 3) grew a 4-player
+main list to 0x81B0 bytes (0x5660 without them): it wrote over the start
+lists, the two frames' lists ended up calling each other, and RT64 followed
+them forever, through stale commands that loaded bogus textures.
+
+**Fix** (`src/game/display_list_room.cpp`, hooked after the slot loop at
+0x8007D770): both main lists move to 128 KB buffers at 0x80700000 and
+0x80720000, in the upper half of RDRAM the game never uses (round 22). The
+game reads each slot's buffer every frame, so nothing else needs to change.
+The main list's tag cap in `interpolation_ids.cpp` goes from 0x6000 to
+0x10000, which still leaves 64 KB for what the game adds after it.
+
+Checked here: the same 4-player run went 3 minutes (stopped by the test's
+timer) through several rounds, memory flat at about 580 MB.
+
 ## 2026-11-10: 0.1.3
 
 Release 0.1.3: rounds 23-25 (waiting loops no longer burn a core, mouse

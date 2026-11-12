@@ -244,6 +244,16 @@ text = """
     btx_interp_frame_base(rdram, ctx);
 """
 
+# --- Display list room ------------------------------------------------------
+# src/game/display_list_room.cpp: the frame slots' main display lists move to
+# bigger buffers in upper RDRAM, after func_8007D4E8 sets the slots up.
+[[patches.hook]]
+func = "func_8007D4E8"
+before_vram = 0x8007D770
+text = """
+    { extern void btx_relocate_main_lists(uint8_t *rdram); btx_relocate_main_lists(rdram); }
+"""
+
 # --- Radar arrows ----------------------------------------------------------
 # src/game/marker_interp.cpp: func_80100550 draws the radar arrows as
 # texture rectangles in the HUD's list; when it's done they become calls to

@@ -1,5 +1,12 @@
 # Changelog
 
+## [Unreleased]
+
+### Fixed
+- 4-player matches froze soon after the round started, with memory use
+  climbing into the gigabytes (issue #1). The game ran out of room for
+  what it draws each frame with 4 players; it now has plenty
+
 ## [0.1.3 (11-10-2026)]
 
 ### Added

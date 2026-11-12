@@ -49,16 +49,19 @@ namespace {
     constexpr uint32_t kGroupBytes = 16;
 
     // Frame slots at +0x90 + 0x18 * (frame index at +0xD0): list buffers at
-    // +0x4 (main, 0x8000 bytes), +0x8 (second, 0x6000; the game itself stops
-    // adding to it past 0x5C00) and +0xC (small, 0x400); the Mtx pool at
-    // +0x14 (0xC000). Tag only while a list is under these.
+    // +0x4 (main, 0x20000 bytes since display_list_room.cpp moved it; the game
+    // never checks its length, so a cap here must leave room for everything
+    // the game still adds after it: a 4-player match's main list is 0x5660
+    // bytes untagged), +0x8 (second, 0x6000; the game itself stops adding to
+    // it past 0x5C00) and +0xC (small, 0x400); the Mtx pool at +0x14 (0xC000).
+    // Tag only while a list is under these.
     struct ListInfo {
         uint32_t head_field;  // in the graphics state
         uint32_t base_field;  // in the frame slot
         uint32_t tag_limit;   // bytes used, past which nothing more is tagged
     };
     constexpr ListInfo kLists[] = {
-        { 0xD8, 0x4, 0x6000 },
+        { 0xD8, 0x4, 0x10000 },
         { 0xDC, 0x8, 0x4800 },
         { 0xE0, 0xC, 0x300 },
     };
