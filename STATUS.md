@@ -7,6 +7,24 @@ engine). PROGRESS.md has the short version.
 
 # Log
 
+## 2026-11-12, round 31: distant tanks keep their textures at farther distances
+
+Owner: round 30 works, but distant tanks have no texture.
+
+**Cause: detail levels.** `func_800824E4` picks an object's model by squared
+distance from the camera: two-model objects switch past 90,000 (300
+units, `0x800714B8`); three-model ones such as the tanks use the middle
+model past 1,000,000 (1000, `0x800714C0`) and the farthest past 2,890,000
+(1700, `0x800714BC`). The farthest models are untextured and meant to sit
+in the fog, which a farther distance moved away.
+
+**Fix** (`src/game/view_distance.cpp`): at each level start the three
+thresholds are scaled by the square of the draw distance's ratio to the
+level's own (x9 at Far), so tanks change model as deep in the fog as
+before; at Original they're set back to the game's values. Only
+`func_800824E4` reads them. Checked here: the first mission at Map Edge
+runs normally; the owner checks the tanks.
+
 ## 2026-11-12, round 30: Draw Distance now moves the far plane
 
 Owner: Fog works, but Draw Distance did nothing (first campaign mission).

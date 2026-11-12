@@ -21,6 +21,7 @@
 // level's own value is a 16-bit one, so nothing goes past 32,000.
 #include <atomic>
 #include <cstdint>
+#include <cstring>
 
 #include "recomp.h"
 
@@ -48,19 +49,46 @@ extern "C" void btx_fog_word(uint8_t* rdram, recomp_context* ctx) {
     }
 }
 
+// Detail levels. func_800824E4 picks an object's model by its squared distance
+// from the camera, with the constants at 0x800714B8 (90,000: 300 units, for
+// two-model objects) and 0x800714BC / 0x800714C0 (2,890,000 / 1,000,000: 1700
+// and 1000 units, for three-model objects such as the tanks). The farthest
+// models are untextured and meant to sit in the fog, so with a farther
+// distance they showed plainly (round 31). The thresholds move out with the
+// draw distance: scaled by the square of its ratio at each level start, and
+// set back to the game's values at Original. Nothing else reads them.
+namespace {
+    constexpr uint32_t kLodThresholds[] = { 0x800714B8, 0x800714BC, 0x800714C0 };
+    constexpr float kLodOriginal[] = { 90000.0f, 2890000.0f, 1000000.0f };
+
+    void set_lod_scale(uint8_t* rdram, float ratio) {
+        for (size_t i = 0; i < 3; i++) {
+            float value = kLodOriginal[i] * ratio * ratio;
+            uint32_t bits;
+            memcpy(&bits, &value, sizeof(bits));
+            MEM_W(0, (gpr)(int32_t)kLodThresholds[i]) = (int32_t)bits;
+        }
+    }
+}
+
 // func_80081AD0 before 0x80082148: $v0 is the level's draw distance, about to
 // be squared and stored.
 extern "C" void btx_level_draw_distance(uint8_t* rdram, recomp_context* ctx) {
-    int32_t distance = (int32_t)ctx->r2;
+    const int32_t original = (int32_t)ctx->r2;
+    int32_t distance = original;
     switch (distance_level.load()) {
         case 1: distance *= 3; break; // Far
         case 2: distance *= 6; break; // Very Far
         case 3: distance = kMaxDrawDistance; break; // Map Edge
-        default: return;
+        default: break;
     }
     if (distance > kMaxDrawDistance) {
         distance = kMaxDrawDistance;
     }
+    if (distance < original) {
+        distance = original;
+    }
+    set_lod_scale(rdram, original > 0 ? (float)distance / (float)original : 1.0f);
     ctx->r2 = (gpr)distance;
 }
 
