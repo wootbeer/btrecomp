@@ -7,6 +7,14 @@ engine). PROGRESS.md has the short version.
 
 # Log
 
+## 2026-11-12: 0.1.4
+
+Release 0.1.4: rounds 26-31 (4-player matches no longer freeze, issue #1;
+the cull cone has room for a frame of turning; distant scenery fades into
+the fog instead of being cut off; experimental Fog and Draw Distance
+options, with the far plane and the tanks' detail levels moving out with
+the distance). All confirmed by the owner.
+
 ## 2026-11-12, round 31: distant tanks keep their textures at farther distances
 
 Owner: round 30 works, but distant tanks have no texture.

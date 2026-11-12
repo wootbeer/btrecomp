@@ -76,7 +76,7 @@ namespace btx {
 
 static const std::string program_name = "BattleTanx Recompiled";
 static const std::u8string program_id = u8"btrecomp";
-static const std::string version_string = "0.1.3";
+static const std::string version_string = "0.1.4";
 
 template <typename... Ts>
 [[noreturn]] static void exit_error(const char* fmt, Ts... args) {

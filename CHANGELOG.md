@@ -1,6 +1,6 @@
 # Changelog
 
-## [Unreleased]
+## [0.1.4 (11-12-2026)]
 
 ### Added
 - Fog and Draw Distance options at the end of the Graphics tab, like in
