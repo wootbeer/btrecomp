@@ -7,7 +7,7 @@ engine). PROGRESS.md has the short version.
 
 # Log
 
-## 2026-11-12, round 28: distant scenery flickering at the fog line (test build)
+## 2026-11-12, round 28: distant scenery flickering at the fog line
 
 Owner: round 27 made the edges better. New clip (Arena, driving the road):
 distant walls, the far fence and signs at the fog line flash on and off
@@ -35,7 +35,8 @@ across the cut.
 **Test** (`lib-patches/rt64/0011-no-f3d-depth-clip.patch`): the clip is
 turned off, so far scenery fades all the way into the fog instead. Not
 verifiable here (the sandbox's views didn't reach the far plane at a fixed
-camera). If it doesn't help, revert it.
+camera). **Confirmed by the owner:** the distance now looks like the
+emulator.
 
 ## 2026-11-12, round 27: ground popping in at the screen edges while turning
 
