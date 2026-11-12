@@ -7,6 +7,27 @@ engine). PROGRESS.md has the short version.
 
 # Log
 
+## 2026-11-12, round 30: Draw Distance now moves the far plane
+
+Owner: Fog works, but Draw Distance did nothing (first campaign mission).
+In the sandbox the distance did reach 32,000, yet with the fog on the
+Arena looked the same at Map Edge as at Original.
+
+**Cause.** The far plane is only rebuilt when the distance changes:
+`func_80083394` compares 0x80125858 with its copy at 0x801C9178 and, when
+they differ, re-squares it and calls `func_800A5EB0` (`guPerspectiveF`,
+fovy 37, far = the distance). The level start (`func_80081AD0`) stores both
+from the same register, so round 29's scaled value moved the culling but
+not the far plane, or the fog with it.
+
+**Fix** (`src/game/view_distance.cpp`): after the level start stores the
+copy (hook before 0x80082168), a farther setting clears it, so the next
+frame rebuilds the projections with the new distance, as when the game
+raises it by 50. Original is untouched.
+
+Checked here: the first mission's opening view at Far shows the buildings
+at the end of the street clearer than at Original.
+
 ## 2026-11-12, round 29: Fog and Draw Distance options (experimental)
 
 Owner's request: the sequel's Fog and Draw Distance options (btgarecomp

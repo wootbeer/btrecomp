@@ -64,6 +64,19 @@ extern "C" void btx_level_draw_distance(uint8_t* rdram, recomp_context* ctx) {
     ctx->r2 = (gpr)distance;
 }
 
+// func_80081AD0 before 0x80082168, after it stored the distance's copy at
+// 0x801C9178. func_80083394 only rebuilds the projections (func_800A5EB0,
+// guPerspectiveF with the distance as the far plane) when the distance and
+// that copy differ, which happens when func_800862E8 raises it. The level
+// start stores both, so a farther setting moved the culling but kept the
+// last far plane, and the fog with it (round 30). Clearing the copy makes
+// the next frame rebuild the projections with the new distance.
+extern "C" void btx_level_draw_distance_stored(uint8_t* rdram, recomp_context* ctx) {
+    if (distance_level.load() > 0) {
+        MEM_W(0, (gpr)(int32_t)0x801C9178) = 0;
+    }
+}
+
 // Room for the farther draw distances. At Map Edge the first campaign level
 // queued more than the 0x800 (2048) draw items func_80080728 allows a frame
 // (16 bytes each at 0x801B6C20, count 0x801B6C10), and the rest were dropped,

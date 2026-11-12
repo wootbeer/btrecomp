@@ -270,6 +270,13 @@ text = """
     { extern void btx_level_draw_distance(uint8_t *rdram, recomp_context *ctx); btx_level_draw_distance(rdram, ctx); }
 """
 
+[[patches.hook]]
+func = "func_80081AD0"
+before_vram = 0x80082168
+text = """
+    { extern void btx_level_draw_distance_stored(uint8_t *rdram, recomp_context *ctx); btx_level_draw_distance_stored(rdram, ctx); }
+"""
+
 # ...and room in the draw queue for the farther distances.
 [[patches.hook]]
 func = "func_800805DC"
