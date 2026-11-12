@@ -23,7 +23,8 @@ thresholds are scaled by the square of the draw distance's ratio to the
 level's own (x9 at Far), so tanks change model as deep in the fog as
 before; at Original they're set back to the game's values. Only
 `func_800824E4` reads them. Checked here: the first mission at Map Edge
-runs normally; the owner checks the tanks.
+runs normally. **Confirmed by the owner** (rounds 29-31: Fog, Draw
+Distance and the tanks' textures all work).
 
 ## 2026-11-12, round 30: Draw Distance now moves the far plane
 
