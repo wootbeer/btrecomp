@@ -9,6 +9,8 @@
 - The ground could pop in at the left and right edges of the screen while
   turning at higher frame rates. The game now draws a little past the
   screen edges so the smooth in-between frames always have ground to show
+- Distant walls and signs flickered at the edge of the fog. They now fade
+  into the fog instead of being cut off
 
 ## [0.1.3 (11-10-2026)]
 

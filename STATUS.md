@@ -7,6 +7,36 @@ engine). PROGRESS.md has the short version.
 
 # Log
 
+## 2026-11-12, round 28: distant scenery flickering at the fog line (test build)
+
+Owner: round 27 made the edges better. New clip (Arena, driving the road):
+distant walls, the far fence and signs at the fog line flash on and off
+frame to frame. It happens with frame interpolation off and in Original
+aspect too; on an emulator the owner saw it once and couldn't repeat it.
+
+Ruled out in the sandbox (temporary probes, removed):
+- Draw queue limits (`func_80080728`: 300 meshes, 0x800 items, the 0xC000
+  matrix pool): peaks about 49 meshes and 730 items in the Arena, no drops.
+- The draw distance: 5000 throughout the match.
+- The map regions (`func_80095768` -> `func_800949D8`): the same set every
+  frame, no single-frame dropouts.
+- Queued draws by position: 5 single-frame dropouts in 943 frames, far too
+  few for what the clip shows.
+- The sequel's Expand flicker (RT64 rebuilding the view-projection): its
+  fixes, lib patches 0001 and 0006, are in, and Original shows it too.
+
+**Likely cause: RT64's F3D depth clip.** `RasterPS.hlsl` discards every
+pixel past depth 1022/1024 (0.998), copying a clipping quirk of the F3D
+microcodes measured against LLE. This game's fog is `gSPFogPosition(995,
+1000)`: at 0.998 it's only about 60% thick, so distant scenery is cut off
+while still visible, and small camera movements move it back and forth
+across the cut.
+
+**Test** (`lib-patches/rt64/0011-no-f3d-depth-clip.patch`): the clip is
+turned off, so far scenery fades all the way into the fog instead. Not
+verifiable here (the sandbox's views didn't reach the far plane at a fixed
+camera). If it doesn't help, revert it.
+
 ## 2026-11-12, round 27: ground popping in at the screen edges while turning
 
 Owner: round 26 confirmed (deathmatch and single player). New report with a
