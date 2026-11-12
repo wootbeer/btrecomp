@@ -22,6 +22,17 @@
 
 #include "btx_config.h"
 
+// The game culls each frame against the view it is about to draw, with almost
+// no room to spare (k 2.2 for one player, against about 2.24 for the screen
+// edge). At a higher frame rate RT64 draws in-between frames, turning the
+// camera part of the way between two game frames but using the newer frame's
+// objects: while the tank turns, the side the camera is turning away from
+// looked past what that frame drew, and the ground there popped in a moment
+// later (round 27). So the cone gets extra room, enough for about 8 degrees of
+// turning per game frame. Parked in the Arena, 1.6 times the room drew nothing
+// more, so this costs little.
+constexpr float kTurnMargin = 1.3f;
+
 namespace {
     std::atomic<float> widescreen_scale{1.0f};
 
@@ -41,12 +52,11 @@ float btx::get_widescreen_scale() {
 }
 
 // Hooked in func_8008228C at 0x800823D0, where both paths have stored k at
-// sp+0x14. Player count in $s4, player index in $s1.
+// sp+0x14. Widened by the Expand factor (1 in Original) and the turn margin. Player count in $s4, player index in $s1.
 extern "C" void btx_widen_cull(uint8_t* rdram, recomp_context* ctx) {
-    float scale = btx::get_widescreen_scale();
-    if (scale <= 1.0f || !is_full_width_view((int32_t)ctx->r20, (int32_t)ctx->r17)) {
+    if (!is_full_width_view((int32_t)ctx->r20, (int32_t)ctx->r17)) {
         return;
     }
     float* k = (float*)(rdram + ((uint32_t)(ctx->r29 + 0x14) - 0x80000000u));
-    *k /= scale;
+    *k /= btx::get_widescreen_scale() * kTurnMargin;
 }

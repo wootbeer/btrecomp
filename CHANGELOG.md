@@ -6,6 +6,9 @@
 - 4-player matches froze soon after the round started, with memory use
   climbing into the gigabytes (issue #1). The game ran out of room for
   what it draws each frame with 4 players; it now has plenty
+- The ground could pop in at the left and right edges of the screen while
+  turning at higher frame rates. The game now draws a little past the
+  screen edges so the smooth in-between frames always have ground to show
 
 ## [0.1.3 (11-10-2026)]
 

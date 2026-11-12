@@ -7,6 +7,35 @@ engine). PROGRESS.md has the short version.
 
 # Log
 
+## 2026-11-12, round 27: ground popping in at the screen edges while turning
+
+Owner: round 26 confirmed (deathmatch and single player). New report with a
+clip from the Arena (1 player, Deathmatch, 16:9 Expand, Display rate): the
+ground texture pops in at the very edges.
+
+- Round 4's widened cull cone is in place, and every cone test
+  (`func_800940AC` points, `func_800941E0`/`func_800942A8` with a radius times
+  1.5) reads the widened k from the record `func_94060` builds.
+- In the sandbox, parked in the Arena with the cone switching between 1x and
+  1.6x every second: frames at the same spot differ only in animated ammo
+  crates, so nothing visible was being culled while still. The clip itself
+  shows the tower and walls entering the edges smoothly.
+
+**Cause:** frame interpolation. The game culls each frame for the angle it
+draws, with almost no room (k 2.2 for one player against about 2.24 for the
+4:3 edge). RT64's in-between frames turn the camera part of the way between
+two game frames using the newer frame's objects, so while turning, the side
+the camera turns away from shows ground that frame didn't draw, until the
+next game frame. The original never shows an angle it didn't cull for. The
+sandbox can't run above the game's rate, so this was checked by reasoning
+and the owner's test, not here.
+
+**Fix** (`src/game/widescreen.cpp`): the same hook now also divides k by 1.3
+for full-width views (1 player, both 2-player halves, the 3-player top view),
+in Original as well as Expand: about 8 degrees of extra room per side, more
+than a game frame of turning. Quadrant views keep the game's cone, so 4-player
+frames don't grow. Checked here: an Arena match plays normally with it.
+
 ## 2026-11-12, round 26: 4-player matches froze (issue #1 again)
 
 Issue #1's reporter came back: with 4 Xbox controllers the game froze
