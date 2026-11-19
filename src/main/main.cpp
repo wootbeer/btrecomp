@@ -52,6 +52,7 @@
 #include "librecomp/helpers.hpp"
 
 #include "btx_cheats.h"
+#include "btx_command_line.h"
 #include "btx_config.h"
 
 #if defined(BTX_HAS_APP_ICON)
@@ -428,6 +429,12 @@ int main(int argc, char** argv) {
     std::set_terminate(report_unhandled_exception_and_abort);
     find_assets_folder();
 
+    btx::cli::Options cli = btx::cli::parse(argc, argv);
+    if (cli.help) {
+        btx::cli::show_text("BattleTanx Recompiled", btx::cli::help_text());
+        std::_Exit(EXIT_SUCCESS);
+    }
+
     recomp::Version project_version{};
     if (!recomp::Version::from_string(version_string, project_version)) {
         fprintf(stderr, "Invalid version string: %s\n", version_string.c_str());
@@ -454,11 +461,12 @@ int main(int argc, char** argv) {
     // loaded (btgarecomp STATUS.md round 86).
     recompui::register_primary_font("Exo2.ttf", "Exo 2");
 
-    recomp::register_config_path(recompui::file::get_app_folder_path());
+    recomp::register_config_path(btx::cli::choose_data_folder(cli));
 
     for (const auto& game : supported_games) {
         recomp::register_game(game);
     }
+    btx::cli::select_rom(cli);
 
     recompinput::players::set_single_player_mode(true);
 
@@ -492,6 +500,20 @@ int main(int argc, char** argv) {
     btx::cheats::add_cheats_tabs();
     recompui::config::create_mods_tab();
     recompui::config::finalize();
+
+    // Settings from the command line, saved as if changed in the menu.
+    btx::cli::apply_settings(cli);
+    if (cli.list_options) {
+        btx::cli::show_text("BattleTanx Recompiled options", btx::cli::options_text());
+        std::_Exit(EXIT_SUCCESS);
+    }
+    if (!cli.errors.empty()) {
+        std::string text = "Some command-line options weren't used:\n";
+        for (const std::string& error : cli.errors) {
+            text += "  " + error + "\n";
+        }
+        btx::cli::show_text("BattleTanx Recompiled", text);
+    }
 
     // Read from the just-loaded config; takes effect on the next launch if
     // changed in the menu.
@@ -545,9 +567,22 @@ int main(int argc, char** argv) {
     // recompui's own default launcher menu is used -- no
     // register_launcher_init_callback call here (see file-level comment).
 
+    // The runtime's own options: its --game (from --play) and --game-mode.
+    std::vector<std::string> runtime_args = { argv[0] };
+    if (cli.play) {
+        runtime_args.push_back("--game");
+        runtime_args.push_back("btx");
+    }
+    runtime_args.insert(runtime_args.end(), cli.runtime_args.begin(), cli.runtime_args.end());
+    std::vector<char*> runtime_argv;
+    for (std::string& arg : runtime_args) {
+        runtime_argv.push_back(arg.data());
+    }
+    runtime_argv.push_back(nullptr);
+
     recomp::start({
-        .argc = argc,
-        .argv = argv,
+        .argc = (int)runtime_args.size(),
+        .argv = runtime_argv.data(),
         .project_version = project_version,
         .window_handle = {}, // created by gfx_callbacks.create_window
         .rsp_callbacks = rsp_callbacks,

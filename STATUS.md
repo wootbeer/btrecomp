@@ -7,6 +7,54 @@ engine). PROGRESS.md has the short version.
 
 # Log
 
+## 2026-11-19, round 32: portable by default; command-line options
+
+Owner's request: portable as the default, leaving existing installs as
+they are, and command-line options for nearly every setting, including
+selecting the ROM and going straight into the game.
+
+**Where files go** (`btx::cli::choose_data_folder`,
+`src/main/command_line.cpp`; `main()` was the only user of recompui's
+`get_app_folder_path`, which checks `portable.txt` in the working
+directory, then the user folder):
+- `--data-dir <folder>`: that folder.
+- `portable.txt` next to the executable (or in the working directory, as
+  before): that folder.
+- Otherwise the user folder if it already has files, or `APP_FOLDER_PATH`
+  is set: existing installs are untouched.
+- Otherwise a new install: `portable.txt` is written next to the executable
+  and that folder is used; if it can't be written (Program Files), the user
+  folder, created so the next run sees an existing install.
+- `--portable` / `--no-portable` write or remove `portable.txt` first.
+  Files aren't moved.
+
+**Command line** (`btx::cli`, `include/btx_command_line.h`):
+- Any option on the General, Graphics, Sound, Cheats and Hacks tabs by its
+  id (`--draw-distance map-edge`, `--unlimited-ammo on`), dashes or
+  underscores, `--name value` or `--name=value`, plus aliases (`--aspect`,
+  `--resolution`, `--msaa`, `--framerate`, `--hud`, `--api`, `--filter`,
+  `--volume`, `--multiplayer`, ...) and `--fullscreen` / `--windowed`.
+  Enum values match the key or the menu name, ignoring case, spaces and
+  dashes; numbers are clamped to the option's range. Applied after
+  `recompui::config::finalize()` with `set_option_value` and saved with
+  `save_config()` (for Graphics that also applies them), as if changed in
+  the menu.
+- `--rom <file>` runs `recomp::select_rom` (the launcher's button) after the
+  game is registered; `recomp::start` then finds it with the stored ROMs.
+- `--play` passes the runtime its own `--game btx`; `--game` and
+  `--game-mode` still pass through.
+- `--help` and `--list-options` (every option, its values and current
+  setting). Bad options are listed and the game carries on. The Windows
+  Release build is a GUI app, so the text goes to the console it was
+  started from (`AttachConsole`), or a message box without one.
+
+Checked here (Linux, a copy of the game with its own home folder): a fresh
+install goes portable; an existing `~/.config/btrecomp` is kept; `--rom`
+plus `--play` plus four settings and two bad ones selected the ROM, saved
+the settings, listed the two errors and went straight to the title;
+`--no-portable` then `--portable` switch back and forth; `--data-dir` and
+`--help` work. Windows not built here.
+
 ## 2026-11-12: 0.1.4
 
 Release 0.1.4: rounds 26-31 (4-player matches no longer freeze, issue #1;

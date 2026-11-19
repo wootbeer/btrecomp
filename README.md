@@ -21,6 +21,7 @@ included.** You need your own dump of the game to build or play this.
 - Cheats and GameShark codes as toggles in the menu.
 - Optional CRT, Scanlines and LCD screen filters, and bloom.
 - Experimental Fog and Draw Distance options to see farther.
+- Portable by default, and command-line options for nearly every setting.
 - Keyboard, mouse and controller support, all remappable. Fire (Z) is on
   the right trigger and left mouse button by default. Mouse Stick (General
   tab) turns the tank with the mouse.
@@ -34,8 +35,34 @@ SHA-1 of the `.z64`:
 Start the game, pick **Load ROM** and select your file. It only has to be
 done once.
 
-Add a blank portable.txt in the application's folder to make it portable,
-if you want to save settings and saves locally.
+### Where settings and saves go
+New installs are **portable**: settings, saves and your ROM copy are kept
+next to the game, in the same folder, with a `portable.txt` file that marks
+it. If you already played an earlier version, nothing changes: your files
+stay in your user folder (`%LOCALAPPDATA%\btrecomp` on Windows,
+`~/.config/btrecomp` on Linux). If the game's folder can't be written to,
+the user folder is used.
+
+To switch, add or delete `portable.txt` next to the game, or start it once
+with `--portable` or `--no-portable`. Switching doesn't move your files, so
+copy them over if you want to keep them.
+
+## Command Line
+Run the game with `--help` to see every option. Some examples:
+```
+BattleTanxRecompiled --rom "BattleTanx (USA).z64" --play
+BattleTanxRecompiled --fullscreen --draw-distance far --fog off
+BattleTanxRecompiled --unlimited-ammo on --volume 60 --play
+```
+- `--rom <file>` selects your ROM, like **Load ROM**.
+- `--play` skips the launcher and starts the game.
+- `--portable`, `--no-portable` and `--data-dir <folder>` choose where
+  settings and saves go.
+- Any setting on the General, Graphics, Sound, Cheats and Hacks tabs can be
+  set too, saved as if you changed it in the menu. `--list-options` lists
+  them all with their values.
+
+On the Steam Deck, put options in the game's **Launch Options** in Steam.
 
 ## Download
 Get the latest build from the

@@ -1,5 +1,15 @@
 # Changelog
 
+## [Unreleased]
+
+### Added
+- Portable by default: new installs keep settings, saves and the ROM copy
+  next to the game. Existing installs stay where they are. Add or delete
+  `portable.txt`, or use `--portable` / `--no-portable`, to switch
+- Command-line options: `--rom` to select the ROM, `--play` to skip the
+  launcher, and nearly every setting (`--fullscreen`, `--draw-distance far`,
+  `--unlimited-ammo on` and so on). `--help` lists them
+
 ## [0.1.4 (11-12-2026)]
 
 ### Added
