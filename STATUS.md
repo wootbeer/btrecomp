@@ -7,6 +7,17 @@ engine). PROGRESS.md has the short version.
 
 # Log
 
+## 2026-11-22, round 35: Restart reads the program's path at startup
+
+From the warecomp port of Restart (via snprecomp): spawning
+`/proc/self/exe` names the new process "exe". Round 34 already spawned the
+resolved path, but read the link when Restart was pressed; once the file is
+replaced while the game runs (a rebuild or an in-place update) it reads
+"... (deleted)" and the relaunch fails. It's now read in `install()` at
+startup, as in their fix. Checked here: Restart, then `pgrep -a
+BattleTanxRecom` lists the new process with the same command line and
+nothing is named "exe".
+
 ## 2026-11-22: 0.1.5
 
 Release 0.1.5: rounds 32-34 (portable by default and command-line

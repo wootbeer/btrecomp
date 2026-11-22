@@ -8,6 +8,7 @@
 #include <chrono>
 #include <cstdio>
 #include <cstdlib>
+#include <filesystem>
 #include <iterator>
 #include <string>
 #include <thread>
@@ -18,7 +19,6 @@
 #include <Windows.h>
 #else
 #include <spawn.h>
-#include <unistd.h>
 extern char** environ;
 #endif
 
@@ -32,12 +32,22 @@ namespace {
     std::atomic_bool relaunched = false;
 #if !defined(_WIN32)
     std::vector<std::string> arguments;
+    // The program's own path, read at startup: spawning /proc/self/exe names
+    // the new process "exe" (in top, task managers and pkill), and once the
+    // file is replaced while the game runs (a rebuild or an update in place)
+    // the link reads "... (deleted)".
+    std::string program = "/proc/self/exe";
 #endif
 }
 
 void btx::restart::install(int argc, char** argv) {
 #if !defined(_WIN32)
     arguments.assign(argv, argv + argc);
+    std::error_code ec;
+    std::filesystem::path self = std::filesystem::read_symlink("/proc/self/exe", ec);
+    if (!ec && !self.empty()) {
+        program = self.string();
+    }
 #else
     (void)argc;
     (void)argv;
@@ -86,17 +96,8 @@ void btx::restart::relaunch_if_requested() {
         argv.push_back(argument.data());
     }
     argv.push_back(nullptr);
-    // The resolved path rather than /proc/self/exe, so the new process keeps
-    // its name in process lists.
-    char exe[4096];
-    ssize_t length = readlink("/proc/self/exe", exe, sizeof(exe) - 1);
-    if (length <= 0) {
-        std::fprintf(stderr, "Restart: couldn't find the game's executable\n");
-        return;
-    }
-    exe[length] = '\0';
     pid_t pid;
-    int error = posix_spawn(&pid, exe, nullptr, nullptr, argv.data(), environ);
+    int error = posix_spawn(&pid, program.c_str(), nullptr, nullptr, argv.data(), environ);
     if (error != 0) {
         std::fprintf(stderr, "Restart: couldn't start the game again (error %d)\n", error);
     }
