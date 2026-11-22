@@ -9,8 +9,8 @@
 - Command-line options: `--rom` to select the ROM, `--play` to skip the
   launcher, and nearly every setting (`--fullscreen`, `--draw-distance far`,
   `--unlimited-ammo on` and so on). `--help` lists them
-- Restart button in the menu, next to Quit, like in Star Wars: Shadows of
-  the Empire's port. The quit prompt has a Restart choice too
+- Restart button in the menu, next to Quit, like in the Sin and Punishment
+  port. The quit prompt has a Restart choice too
 
 ### Fixed
 - With a farther Draw Distance, enemies could target and fire from much
