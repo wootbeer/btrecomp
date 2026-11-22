@@ -28,6 +28,7 @@ Owner's request: snprecomp's Restart button (its round 12).
 Checked here: the menu shows the button; pressing it asks, and Restart
 closed the game and started a new one with the same `--game btx`, which
 reached the intro.
+**Confirmed by the owner** on Windows.
 
 ## 2026-11-22, round 33: enemies keep their normal range at farther draw distances
 
