@@ -53,6 +53,7 @@
 
 #include "btx_cheats.h"
 #include "btx_command_line.h"
+#include "btx_restart.h"
 #include "btx_config.h"
 
 #if defined(BTX_HAS_APP_ICON)
@@ -580,6 +581,8 @@ int main(int argc, char** argv) {
     }
     runtime_argv.push_back(nullptr);
 
+    btx::restart::install(argc, argv);
+
     recomp::start({
         .argc = (int)runtime_args.size(),
         .argv = runtime_argv.data(),
@@ -603,6 +606,7 @@ int main(int argc, char** argv) {
     // returns, so running static destructors/atexit handlers underneath
     // them can crash on quit -- exit directly instead (same approach as
     // other N64Recomp projects' main()).
+    btx::restart::relaunch_if_requested();
     fflush(stdout);
     fflush(stderr);
     std::_Exit(EXIT_SUCCESS);

@@ -7,6 +7,28 @@ engine). PROGRESS.md has the short version.
 
 # Log
 
+## 2026-11-22, round 34: Restart button
+
+Owner's request: snprecomp's Restart button (its round 12).
+
+- `lib-patches/RecompFrontend/0005-restart-button.patch` is snprecomp's 0023
+  unchanged (it applies on our 0001-0004): `recompui::set_restart_callback`
+  adds a Restart icon (`icons/Reset.svg`, already in our assets) between
+  Quit and Close in the menu's header, asking first once the game has
+  started, and a middle Restart choice in the quit prompt (also Alt+F4 or
+  closing the window).
+- `src/main/restart.cpp`: the callback quits as Quit does; right before the
+  process ends (the end of `main`, or a quiet shutdown fault in
+  `src/main/crash_handler.cpp`) the game starts again with the same command
+  line and working folder (`CreateProcessW`, or `posix_spawn` of the
+  resolved `/proc/self/exe` so the process keeps its name). snprecomp ends
+  every quit after 3 s with a watchdog; here only Restart arms one (5 s),
+  so Quit is unchanged.
+
+Checked here: the menu shows the button; pressing it asks, and Restart
+closed the game and started a new one with the same `--game btx`, which
+reached the intro.
+
 ## 2026-11-22, round 33: enemies keep their normal range at farther draw distances
 
 From the sequel's port (btgarecomp round 227): with a long Draw Distance,
