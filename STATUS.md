@@ -7,6 +7,33 @@ engine). PROGRESS.md has the short version.
 
 # Log
 
+## 2026-11-22, round 33: enemies keep their normal range at farther draw distances
+
+From the sequel's port (btgarecomp round 227): with a long Draw Distance,
+gun turrets opened fire from much farther away, because their range comes
+from the draw distance.
+
+Every reader of the draw distance (0x80125858, square at 0x801C9174) was
+sorted. Drawing: the culling functions, `func_80083394`'s far plane, and
+`func_8010BFDC` (an effect drawer; its `func_8008332C` test). Game logic,
+both scaled by the option until now:
+- `func_800A1170`: picks the nearest target within range^2 = distance^2 x
+  0.92 (`0x80072C7C`, the sequel's constant), storing it at +0x2E (0xFF for
+  none). Called from `func_800A1408`.
+- `func_800DDC68`: a range of distance x 0.95 (2000 at 1800 or less), used
+  by `func_800E56B0` and `func_800E9318`.
+
+**Fix** (`src/game/view_distance.cpp`): the level start records the game's
+own distance before the option scales it, and hooks right after both loads
+(before 0x800A126C and 0x800DDC78) use it instead. Unlike the sequel, no
+governor hook is needed: here the value never changes during a level (it
+starts at the level's maximum, `func_800862E8` only raises it below that,
+and the step down is stubbed, round 12), so at Original the kept value is
+always the real one.
+
+Checked here (first mission at Far, temporary probe): the fire range read
+2000 while the draw distance was 6000.
+
 ## 2026-11-19, round 32: portable by default; command-line options
 
 Owner's request: portable as the default, leaving existing installs as

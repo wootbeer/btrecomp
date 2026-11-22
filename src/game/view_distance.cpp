@@ -71,10 +71,42 @@ namespace {
     }
 }
 
+// The game's own draw distance, for the game logic that reads it (round 33,
+// as the sequel's port's round 227). Two readers aren't drawing:
+// func_800A1170 picks the nearest target within range^2 = distance^2 * 0.92
+// (0x80072C7C), and func_800DDC68 returns a range of distance * 0.95 (2000 at
+// 1800 or less) for func_800E56B0 / func_800E9318. A farther setting would
+// stretch both, so enemies would lock on and fire from much farther away.
+// The game's value never changes during a level here: it starts at the
+// level's maximum, func_800862E8 only raises it while it's below that, and
+// the step down is stubbed (round 12). So the level start's value is kept.
+// Every other reader draws (culling, the far plane, func_8010BFDC's
+// func_8008332C test).
+namespace {
+    int32_t game_draw_distance = 0;
+}
+
+// func_800A1170 before 0x800A126C: $v0 is the draw distance, about to be
+// squared for the target range.
+extern "C" void btx_target_range_distance(uint8_t* rdram, recomp_context* ctx) {
+    if (game_draw_distance > 0) {
+        ctx->r2 = (gpr)game_draw_distance;
+    }
+}
+
+// func_800DDC68 before 0x800DDC78: $f2 holds the draw distance as an int,
+// about to be converted for the range.
+extern "C" void btx_fire_range_distance(uint8_t* rdram, recomp_context* ctx) {
+    if (game_draw_distance > 0) {
+        ctx->f2.u32l = (uint32_t)game_draw_distance;
+    }
+}
+
 // func_80081AD0 before 0x80082148: $v0 is the level's draw distance, about to
 // be squared and stored.
 extern "C" void btx_level_draw_distance(uint8_t* rdram, recomp_context* ctx) {
     const int32_t original = (int32_t)ctx->r2;
+    game_draw_distance = original;
     int32_t distance = original;
     switch (distance_level.load()) {
         case 1: distance *= 3; break; // Far

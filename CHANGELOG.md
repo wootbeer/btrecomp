@@ -10,6 +10,10 @@
   launcher, and nearly every setting (`--fullscreen`, `--draw-distance far`,
   `--unlimited-ammo on` and so on). `--help` lists them
 
+### Fixed
+- With a farther Draw Distance, enemies could target and fire from much
+  farther away than normal. Their range now stays as in the original game
+
 ## [0.1.4 (11-12-2026)]
 
 ### Added
