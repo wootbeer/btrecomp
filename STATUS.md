@@ -7,6 +7,12 @@ engine). PROGRESS.md has the short version.
 
 # Log
 
+## 2026-11-22: 0.1.5
+
+Release 0.1.5: rounds 32-34 (portable by default and command-line
+options; enemies keep their normal range at farther draw distances; the
+Restart button). All confirmed by the owner.
+
 ## 2026-11-22, round 34: Restart button
 
 Owner's request: snprecomp's Restart button (its round 12).

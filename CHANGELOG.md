@@ -1,6 +1,6 @@
 # Changelog
 
-## [Unreleased]
+## [0.1.5 (11-22-2026)]
 
 ### Added
 - Portable by default: new installs keep settings, saves and the ROM copy
